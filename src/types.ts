@@ -12,3 +12,9 @@ export interface VaultEntry {
   modifiedAt: number | null
   fileSize: number
 }
+
+export type SidebarSelection =
+  | { kind: 'filter'; filter: 'all' | 'people' | 'events' | 'favorites' | 'trash' }
+  | { kind: 'sectionGroup'; type: string }
+  | { kind: 'entity'; entry: VaultEntry }
+  | { kind: 'topic'; entry: VaultEntry }

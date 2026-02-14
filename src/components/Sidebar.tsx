@@ -1,16 +1,96 @@
+import { useState } from 'react'
+import type { VaultEntry, SidebarSelection } from '../types'
 import './Sidebar.css'
 
-export function Sidebar() {
+interface SidebarProps {
+  entries: VaultEntry[]
+  selection: SidebarSelection
+  onSelect: (selection: SidebarSelection) => void
+}
+
+const SECTION_GROUPS = [
+  { label: 'PROJECTS', type: 'Project' },
+  { label: 'EXPERIMENTS', type: 'Experiment' },
+  { label: 'RESPONSIBILITIES', type: 'Responsibility' },
+  { label: 'PROCEDURES', type: 'Procedure' },
+] as const
+
+export function Sidebar({ entries, selection, onSelect }: SidebarProps) {
+  const [collapsed, setCollapsed] = useState<Record<string, boolean>>({})
+
+  const toggleSection = (type: string) => {
+    setCollapsed((prev) => ({ ...prev, [type]: !prev[type] }))
+  }
+
+  const isActive = (sel: SidebarSelection): boolean => {
+    if (selection.kind !== sel.kind) return false
+    if (sel.kind === 'filter' && selection.kind === 'filter') return sel.filter === selection.filter
+    if (sel.kind === 'sectionGroup' && selection.kind === 'sectionGroup') return sel.type === selection.type
+    if (sel.kind === 'entity' && selection.kind === 'entity') return sel.entry.path === selection.entry.path
+    if (sel.kind === 'topic' && selection.kind === 'topic') return sel.entry.path === selection.entry.path
+    return false
+  }
+
   return (
     <aside className="sidebar">
       <div className="sidebar__header">
         <h2>Laputa</h2>
       </div>
+
       <nav className="sidebar__nav">
-        <div className="sidebar__item sidebar__item--active">All Notes</div>
-        <div className="sidebar__item">Projects</div>
-        <div className="sidebar__item">Tasks</div>
-        <div className="sidebar__item">People</div>
+        {SECTION_GROUPS.map(({ label, type }) => {
+          const items = entries.filter((e) => e.isA === type)
+          const isCollapsed = collapsed[type] ?? false
+
+          return (
+            <div key={type} className="sidebar__section">
+              <div
+                className={`sidebar__section-header${
+                  isActive({ kind: 'sectionGroup', type }) ? ' sidebar__section-header--active' : ''
+                }`}
+                onClick={() => onSelect({ kind: 'sectionGroup', type })}
+              >
+                <button
+                  className="sidebar__collapse-btn"
+                  onClick={(e) => {
+                    e.stopPropagation()
+                    toggleSection(type)
+                  }}
+                  aria-label={isCollapsed ? `Expand ${label}` : `Collapse ${label}`}
+                >
+                  {isCollapsed ? '▸' : '▾'}
+                </button>
+                <span className="sidebar__section-label">{label}</span>
+                <span className="sidebar__section-count">{items.length}</span>
+                <button
+                  className="sidebar__add-btn"
+                  onClick={(e) => {
+                    e.stopPropagation()
+                    // TODO: Wire up create new entity
+                  }}
+                  aria-label={`Add ${type}`}
+                >
+                  +
+                </button>
+              </div>
+              {!isCollapsed && (
+                <div className="sidebar__section-items">
+                  {items.map((entry) => (
+                    <div
+                      key={entry.path}
+                      className={`sidebar__item${
+                        isActive({ kind: 'entity', entry }) ? ' sidebar__item--active' : ''
+                      }`}
+                      onClick={() => onSelect({ kind: 'entity', entry })}
+                    >
+                      {entry.title}
+                    </div>
+                  ))}
+                </div>
+              )}
+            </div>
+          )
+        })}
       </nav>
     </aside>
   )

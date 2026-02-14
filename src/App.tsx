@@ -6,14 +6,17 @@ import { Editor } from './components/Editor'
 import { Inspector } from './components/Inspector'
 import { ResizeHandle } from './components/ResizeHandle'
 import { isTauri, mockInvoke } from './mock-tauri'
-import type { VaultEntry } from './types'
+import type { VaultEntry, SidebarSelection } from './types'
 import './App.css'
 
 // TODO: Make vault path configurable via settings
 const TEST_VAULT_PATH = '~/Laputa'
 
+const DEFAULT_SELECTION: SidebarSelection = { kind: 'filter', filter: 'all' }
+
 function App() {
   const [entries, setEntries] = useState<VaultEntry[]>([])
+  const [selection, setSelection] = useState<SidebarSelection>(DEFAULT_SELECTION)
   const [sidebarWidth, setSidebarWidth] = useState(250)
   const [noteListWidth, setNoteListWidth] = useState(300)
   const [inspectorWidth, setInspectorWidth] = useState(280)
@@ -56,7 +59,7 @@ function App() {
   return (
     <div className="app">
       <div className="app__sidebar" style={{ width: sidebarWidth }}>
-        <Sidebar />
+        <Sidebar entries={entries} selection={selection} onSelect={setSelection} />
       </div>
       <ResizeHandle onResize={handleSidebarResize} />
       <div className="app__note-list" style={{ width: noteListWidth }}>

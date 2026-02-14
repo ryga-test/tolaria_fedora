@@ -4,11 +4,13 @@
   display: flex;
   flex-direction: column;
   overflow-y: auto;
+  height: 100%;
 }
 
 .sidebar__header {
   padding: 16px;
   border-bottom: 1px solid #2a2a4a;
+  flex-shrink: 0;
 }
 
 .sidebar__header h2 {
@@ -20,14 +22,97 @@
 
 .sidebar__nav {
   padding: 8px 0;
+  flex: 1;
+  overflow-y: auto;
+}
+
+/* Section Groups */
+.sidebar__section {
+  margin-bottom: 4px;
+}
+
+.sidebar__section-header {
+  display: flex;
+  align-items: center;
+  padding: 6px 8px;
+  margin: 0 4px;
+  border-radius: 4px;
+  cursor: pointer;
+  font-size: 11px;
+  font-weight: 600;
+  letter-spacing: 0.05em;
+  color: #888;
+  user-select: none;
+}
+
+.sidebar__section-header:hover {
+  background: #2a2a4a;
+  color: #bbb;
+}
+
+.sidebar__section-header--active {
+  background: #2a2a4a;
+  color: #ffffff;
+}
+
+.sidebar__collapse-btn {
+  background: none;
+  border: none;
+  color: inherit;
+  font-size: 10px;
+  cursor: pointer;
+  padding: 0 4px 0 0;
+  line-height: 1;
+  width: 16px;
+  flex-shrink: 0;
+}
+
+.sidebar__section-label {
+  flex: 1;
+}
+
+.sidebar__section-count {
+  font-size: 10px;
+  color: #666;
+  margin-right: 4px;
+}
+
+.sidebar__add-btn {
+  background: none;
+  border: none;
+  color: #666;
+  font-size: 14px;
+  cursor: pointer;
+  padding: 0 2px;
+  line-height: 1;
+  border-radius: 3px;
+  opacity: 0;
+  transition: opacity 0.15s;
+}
+
+.sidebar__section-header:hover .sidebar__add-btn {
+  opacity: 1;
+}
+
+.sidebar__add-btn:hover {
+  color: #ffffff;
+  background: #3a3a5a;
+}
+
+/* Section items (entity list) */
+.sidebar__section-items {
+  padding: 2px 0;
 }
 
 .sidebar__item {
-  padding: 8px 16px;
+  padding: 5px 16px 5px 28px;
   cursor: pointer;
-  font-size: 14px;
+  font-size: 13px;
   border-radius: 4px;
-  margin: 2px 8px;
+  margin: 1px 4px;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
 }
 
 .sidebar__item:hover {
