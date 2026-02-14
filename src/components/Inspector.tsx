@@ -1,5 +1,5 @@
 import { useMemo } from 'react'
-import type { VaultEntry } from '../types'
+import type { VaultEntry, GitCommit } from '../types'
 import './Inspector.css'
 
 interface InspectorProps {
@@ -9,6 +9,7 @@ interface InspectorProps {
   content: string | null
   entries: VaultEntry[]
   allContent: Record<string, string>
+  gitHistory: GitCommit[]
   onNavigate: (target: string) => void
 }
 
@@ -196,7 +197,47 @@ function BacklinksPanel({ backlinks, onNavigate }: { backlinks: VaultEntry[]; on
   )
 }
 
-export function Inspector({ collapsed, onToggle, entry, content, entries, allContent, onNavigate }: InspectorProps) {
+function formatRelativeDate(timestamp: number): string {
+  const now = Math.floor(Date.now() / 1000)
+  const diff = now - timestamp
+  if (diff < 86400) return 'today'
+  const days = Math.floor(diff / 86400)
+  if (days === 1) return 'yesterday'
+  if (days < 30) return `${days}d ago`
+  const months = Math.floor(days / 30)
+  if (months === 1) return '1mo ago'
+  return `${months}mo ago`
+}
+
+function GitHistoryPanel({ commits }: { commits: GitCommit[] }) {
+  return (
+    <div className="inspector__section">
+      <h4>History</h4>
+      {commits.length === 0 ? (
+        <p className="inspector__empty">No revision history</p>
+      ) : (
+        <>
+          <div className="inspector__commits">
+            {commits.map((c) => (
+              <div key={c.hash} className="inspector__commit">
+                <div className="inspector__commit-top">
+                  <span className="inspector__commit-hash">{c.hash}</span>
+                  <span className="inspector__commit-date">{formatRelativeDate(c.date)}</span>
+                </div>
+                <div className="inspector__commit-msg">{c.message}</div>
+              </div>
+            ))}
+          </div>
+          <button className="inspector__view-all" disabled>
+            View all revisions
+          </button>
+        </>
+      )}
+    </div>
+  )
+}
+
+export function Inspector({ collapsed, onToggle, entry, content, entries, allContent, gitHistory, onNavigate }: InspectorProps) {
   const backlinks = useBacklinks(entry, entries, allContent)
 
   return (
@@ -214,6 +255,7 @@ export function Inspector({ collapsed, onToggle, entry, content, entries, allCon
               <PropertiesPanel entry={entry} content={content} />
               <RelationshipsPanel entry={entry} onNavigate={onNavigate} />
               <BacklinksPanel backlinks={backlinks} onNavigate={onNavigate} />
+              <GitHistoryPanel commits={gitHistory} />
             </>
           ) : (
             <>
@@ -228,6 +270,10 @@ export function Inspector({ collapsed, onToggle, entry, content, entries, allCon
               <div className="inspector__section">
                 <h4>Backlinks</h4>
                 <p className="inspector__empty">No backlinks</p>
+              </div>
+              <div className="inspector__section">
+                <h4>History</h4>
+                <p className="inspector__empty">No revision history</p>
               </div>
             </>
           )}

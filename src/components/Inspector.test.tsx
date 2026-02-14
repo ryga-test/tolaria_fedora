@@ -1,7 +1,7 @@
 import { render, screen, fireEvent } from '@testing-library/react'
 import { describe, it, expect, vi } from 'vitest'
 import { Inspector } from './Inspector'
-import type { VaultEntry } from '../types'
+import type { VaultEntry, GitCommit } from '../types'
 
 const mockEntry: VaultEntry = {
   path: '/vault/project/test.md',
@@ -49,6 +49,13 @@ const allContent: Record<string, string> = {
   '/vault/project/test.md': '# Test Project\n\nSome content.',
 }
 
+const now = Math.floor(Date.now() / 1000)
+const mockGitHistory: GitCommit[] = [
+  { hash: 'a1b2c3d', message: 'Update test with latest changes', author: 'Luca Rossi', date: now - 86400 * 2 },
+  { hash: 'e4f5g6h', message: 'Add new section to test', author: 'Luca Rossi', date: now - 86400 * 5 },
+  { hash: 'i7j8k9l', message: 'Create test', author: 'Luca Rossi', date: now - 86400 * 12 },
+]
+
 const defaultProps = {
   collapsed: false,
   onToggle: () => {},
@@ -56,6 +63,7 @@ const defaultProps = {
   content: null as string | null,
   entries: [] as VaultEntry[],
   allContent: {} as Record<string, string>,
+  gitHistory: [] as GitCommit[],
   onNavigate: () => {},
 }
 
@@ -179,5 +187,46 @@ describe('Inspector', () => {
     )
     fireEvent.click(screen.getByText('Referrer Note'))
     expect(onNavigate).toHaveBeenCalledWith('Referrer Note')
+  })
+
+  it('shows git history with commit hashes and messages', () => {
+    render(
+      <Inspector
+        {...defaultProps}
+        entry={mockEntry}
+        content={mockContent}
+        gitHistory={mockGitHistory}
+      />
+    )
+    expect(screen.getByText('History')).toBeInTheDocument()
+    expect(screen.getByText('a1b2c3d')).toBeInTheDocument()
+    expect(screen.getByText('Update test with latest changes')).toBeInTheDocument()
+    expect(screen.getByText('e4f5g6h')).toBeInTheDocument()
+    expect(screen.getByText('i7j8k9l')).toBeInTheDocument()
+  })
+
+  it('shows "View all revisions" placeholder button', () => {
+    render(
+      <Inspector
+        {...defaultProps}
+        entry={mockEntry}
+        content={mockContent}
+        gitHistory={mockGitHistory}
+      />
+    )
+    const btn = screen.getByText('View all revisions')
+    expect(btn).toBeDisabled()
+  })
+
+  it('shows "No revision history" when no commits', () => {
+    render(
+      <Inspector
+        {...defaultProps}
+        entry={mockEntry}
+        content={mockContent}
+        gitHistory={[]}
+      />
+    )
+    expect(screen.getByText('No revision history')).toBeInTheDocument()
   })
 })

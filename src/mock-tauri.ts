@@ -4,7 +4,7 @@
  * this provides realistic test data so the UI can be verified visually.
  */
 
-import type { VaultEntry } from './types'
+import type { VaultEntry, GitCommit } from './types'
 
 const MOCK_CONTENT: Record<string, string> = {
   '/Users/luca/Laputa/project/26q1-laputa-app.md': `---
@@ -490,10 +490,42 @@ const MOCK_ENTRIES: VaultEntry[] = [
   },
 ]
 
+function mockGitHistory(path: string): GitCommit[] {
+  const filename = path.split('/').pop()?.replace('.md', '') ?? 'unknown'
+  const now = Math.floor(Date.now() / 1000)
+  return [
+    {
+      hash: 'a1b2c3d',
+      message: `Update ${filename} with latest changes`,
+      author: 'Luca Rossi',
+      date: now - 86400 * 2,
+    },
+    {
+      hash: 'e4f5g6h',
+      message: `Add new section to ${filename}`,
+      author: 'Luca Rossi',
+      date: now - 86400 * 5,
+    },
+    {
+      hash: 'i7j8k9l',
+      message: `Fix formatting in ${filename}`,
+      author: 'Luca Rossi',
+      date: now - 86400 * 12,
+    },
+    {
+      hash: 'm0n1o2p',
+      message: `Create ${filename}`,
+      author: 'Luca Rossi',
+      date: now - 86400 * 30,
+    },
+  ]
+}
+
 const mockHandlers: Record<string, (args: any) => any> = {
   list_vault: () => MOCK_ENTRIES,
   get_note_content: (args: { path: string }) => MOCK_CONTENT[args.path] ?? '',
   get_all_content: () => MOCK_CONTENT,
+  get_git_history: (args: { path: string }) => mockGitHistory(args.path),
 }
 
 export function isTauri(): boolean {

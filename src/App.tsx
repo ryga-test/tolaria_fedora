@@ -6,7 +6,7 @@ import { Editor } from './components/Editor'
 import { Inspector } from './components/Inspector'
 import { ResizeHandle } from './components/ResizeHandle'
 import { isTauri, mockInvoke } from './mock-tauri'
-import type { VaultEntry, SidebarSelection } from './types'
+import type { VaultEntry, SidebarSelection, GitCommit } from './types'
 import './App.css'
 
 // TODO: Make vault path configurable via settings
@@ -24,6 +24,7 @@ function App() {
   const [inspectorWidth, setInspectorWidth] = useState(280)
   const [inspectorCollapsed, setInspectorCollapsed] = useState(false)
   const [allContent, setAllContent] = useState<Record<string, string>>({})
+  const [gitHistory, setGitHistory] = useState<GitCommit[]>([])
 
   useEffect(() => {
     const loadVault = async () => {
@@ -55,6 +56,29 @@ function App() {
     }
     loadVault()
   }, [])
+
+  // Load git history when active tab changes
+  useEffect(() => {
+    if (!activeTabPath) {
+      setGitHistory([])
+      return
+    }
+    const loadHistory = async () => {
+      try {
+        let history: GitCommit[]
+        if (isTauri()) {
+          history = await invoke<GitCommit[]>('get_git_history', { path: activeTabPath })
+        } else {
+          history = await mockInvoke<GitCommit[]>('get_git_history', { path: activeTabPath })
+        }
+        setGitHistory(history)
+      } catch (err) {
+        console.warn('Failed to load git history:', err)
+        setGitHistory([])
+      }
+    }
+    loadHistory()
+  }, [activeTabPath])
 
   const handleSelectNote = useCallback(async (entry: VaultEntry) => {
     // If tab already open, just switch to it
@@ -174,6 +198,7 @@ function App() {
           content={activeTab?.content ?? null}
           entries={entries}
           allContent={allContent}
+          gitHistory={gitHistory}
           onNavigate={handleNavigateWikilink}
         />
       </div>

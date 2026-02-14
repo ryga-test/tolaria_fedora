@@ -13,6 +13,13 @@ export interface VaultEntry {
   fileSize: number
 }
 
+export interface GitCommit {
+  hash: string
+  message: string
+  author: string
+  date: number // unix timestamp
+}
+
 export type SidebarSelection =
   | { kind: 'filter'; filter: 'all' | 'people' | 'events' | 'favorites' | 'trash' }
   | { kind: 'sectionGroup'; type: string }
