@@ -107,6 +107,22 @@
   color: var(--text-primary);
 }
 
+/* Wikilink inline content */
+.wikilink {
+  color: var(--accent-blue, #2196f3);
+  cursor: pointer;
+  text-decoration: underline;
+  text-decoration-style: dotted;
+  text-underline-offset: 2px;
+  border-radius: 2px;
+  padding: 0 1px;
+}
+
+.wikilink:hover {
+  background: var(--accent-blue-bg, rgba(33, 150, 243, 0.1));
+  text-decoration-style: solid;
+}
+
 /* BlockNote container */
 .editor__blocknote-container {
   flex: 1;

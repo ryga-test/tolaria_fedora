@@ -543,6 +543,7 @@ function App() {
         <Editor
           tabs={tabs}
           activeTabPath={activeTabPath}
+          entries={entries}
           onSwitchTab={handleSwitchTab}
           onCloseTab={handleCloseTab}
           onNavigateWikilink={handleNavigateWikilink}

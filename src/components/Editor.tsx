@@ -1,5 +1,7 @@
 import { useEffect, useState, useCallback, useMemo, useRef } from 'react'
-import { useCreateBlockNote } from '@blocknote/react'
+import { BlockNoteSchema, defaultInlineContentSpecs } from '@blocknote/core'
+import { filterSuggestionItems } from '@blocknote/core/extensions'
+import { createReactInlineContentSpec, useCreateBlockNote, SuggestionMenuController } from '@blocknote/react'
 import { BlockNoteView } from '@blocknote/mantine'
 import '@blocknote/mantine/style.css'
 import type { VaultEntry } from '../types'
@@ -13,12 +15,46 @@ interface Tab {
 interface EditorProps {
   tabs: Tab[]
   activeTabPath: string | null
+  entries: VaultEntry[]
   onSwitchTab: (path: string) => void
   onCloseTab: (path: string) => void
   onNavigateWikilink: (target: string) => void
   onLoadDiff?: (path: string) => Promise<string>
   isModified?: (path: string) => boolean
 }
+
+// --- Custom Inline Content: WikiLink ---
+
+const WikiLink = createReactInlineContentSpec(
+  {
+    type: "wikilink" as const,
+    propSchema: {
+      target: { default: "" },
+    },
+    content: "none",
+  },
+  {
+    render: (props) => (
+      <span
+        className="wikilink"
+        data-target={props.inlineContent.props.target}
+      >
+        {props.inlineContent.props.target}
+      </span>
+    ),
+  }
+)
+
+// --- Schema with wikilink ---
+
+const schema = BlockNoteSchema.create({
+  inlineContentSpecs: {
+    ...defaultInlineContentSpecs,
+    wikilink: WikiLink,
+  },
+})
+
+type EditorType = typeof schema.BlockNoteEditorType
 
 /** Strip YAML frontmatter from markdown, returning [frontmatter, body] */
 function splitFrontmatter(content: string): [string, string] {
@@ -28,6 +64,62 @@ function splitFrontmatter(content: string): [string, string] {
   let to = end + 4
   if (content[to] === '\n') to++
   return [content.slice(0, to), content.slice(to)]
+}
+
+// Wikilink placeholder tokens for markdown round-trip
+const WL_START = '\u2039WIKILINK:'
+const WL_END = '\u203A'
+const WL_RE = new RegExp(`${WL_START.replace(/[.*+?^${}()|[\]\\]/g, '\\$&')}([^${WL_END}]+)${WL_END.replace(/[.*+?^${}()|[\]\\]/g, '\\$&')}`, 'g')
+
+/** Pre-process markdown: replace [[target]] with placeholder tokens */
+function preProcessWikilinks(md: string): string {
+  return md.replace(/\[\[([^\]]+)\]\]/g, (_m, target) => `${WL_START}${target}${WL_END}`)
+}
+
+/** Walk blocks and replace placeholder text with wikilink inline content */
+function injectWikilinks(blocks: any[]): any[] {
+  return blocks.map(block => {
+    if (block.content && Array.isArray(block.content)) {
+      block.content = expandWikilinksInContent(block.content)
+    }
+    if (block.children && Array.isArray(block.children)) {
+      block.children = injectWikilinks(block.children)
+    }
+    return block
+  })
+}
+
+function expandWikilinksInContent(content: any[]): any[] {
+  const result: any[] = []
+  for (const item of content) {
+    if (item.type === 'text' && typeof item.text === 'string' && item.text.includes(WL_START)) {
+      // Split this text node around wikilink placeholders
+      const text = item.text as string
+      let lastIndex = 0
+      WL_RE.lastIndex = 0
+      let match
+      while ((match = WL_RE.exec(text)) !== null) {
+        // Text before this match
+        if (match.index > lastIndex) {
+          result.push({ ...item, text: text.slice(lastIndex, match.index) })
+        }
+        // The wikilink
+        result.push({
+          type: 'wikilink',
+          props: { target: match[1] },
+          content: undefined,
+        })
+        lastIndex = match.index + match[0].length
+      }
+      // Text after last match
+      if (lastIndex < text.length) {
+        result.push({ ...item, text: text.slice(lastIndex) })
+      }
+    } else {
+      result.push(item)
+    }
+  }
+  return result
 }
 
 function DiffView({ diff }: { diff: string }) {
@@ -67,60 +159,60 @@ function DiffView({ diff }: { diff: string }) {
 }
 
 /** Inner component that creates/manages BlockNote for a single tab */
-function BlockNoteTab({ content, onNavigateWikilink }: { content: string; onNavigateWikilink: (target: string) => void }) {
+function BlockNoteTab({ content, entries, onNavigateWikilink }: { content: string; entries: VaultEntry[]; onNavigateWikilink: (target: string) => void }) {
   const [, body] = useMemo(() => splitFrontmatter(content), [content])
   const navigateRef = useRef(onNavigateWikilink)
   navigateRef.current = onNavigateWikilink
 
-  // Extract wiki-link targets from the raw markdown
-  const wikiTargets = useMemo(() => {
-    const targets = new Set<string>()
-    const re = /\[\[([^\]]+)\]\]/g
-    let m
-    while ((m = re.exec(body))) targets.add(m[1])
-    return targets
-  }, [body])
+  const editor = useCreateBlockNote({ schema })
 
-  const editor = useCreateBlockNote({})
-
-  // Load markdown content into editor
+  // Load markdown content into editor, converting [[target]] to wikilink inline content
   useEffect(() => {
     async function load() {
-      // Convert [[target]] wiki-links to markdown links — BlockNote renders them as underlined text
-      const preprocessed = body.replace(/\[\[([^\]]+)\]\]/g, (_match, target) => `[${target}](https://wikilink.internal/${encodeURIComponent(target)})`)
+      const preprocessed = preProcessWikilinks(body)
       const blocks = await editor.tryParseMarkdownToBlocks(preprocessed)
-      editor.replaceBlocks(editor.document, blocks)
+      const withWikilinks = injectWikilinks(blocks)
+      editor.replaceBlocks(editor.document, withWikilinks)
     }
     load()
   // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [body])
 
-  // Intercept all clicks in the editor — check if target is a wikilink anchor
+  // Click handler for wikilinks
   useEffect(() => {
-    const WIKILINK_PREFIX = 'https://wikilink.internal/'
-
-    const handler = (e: MouseEvent) => {
-      // Walk up from click target to find an <a> with wikilink href
-      let el = e.target as HTMLElement | null
-      while (el && el.tagName !== 'A') el = el.parentElement
-      if (!el) return
-      const href = (el as HTMLAnchorElement).getAttribute('href') || ''
-      if (href.startsWith(WIKILINK_PREFIX)) {
-        e.preventDefault()
-        e.stopPropagation()
-        e.stopImmediatePropagation()
-        const target = decodeURIComponent(href.replace(WIKILINK_PREFIX, ''))
-        navigateRef.current(target)
-        return false
-      }
-    }
-
-    // Capture phase on the container
     const container = document.querySelector('.editor__blocknote-container')
     if (!container) return
+    const handler = (e: MouseEvent) => {
+      const wikilink = (e.target as HTMLElement).closest('.wikilink')
+      if (wikilink) {
+        e.preventDefault()
+        e.stopPropagation()
+        const target = (wikilink as HTMLElement).dataset.target
+        if (target) navigateRef.current(target)
+      }
+    }
     container.addEventListener('click', handler as EventListener, true)
     return () => container.removeEventListener('click', handler as EventListener, true)
   }, [editor])
+
+  // Suggestion menu items for [[ trigger
+  const getWikilinkItems = useCallback(async (query: string) => {
+    const items = entries.map(entry => ({
+      title: entry.title,
+      onItemClick: () => {
+        editor.insertInlineContent([
+          {
+            type: 'wikilink' as const,
+            props: { target: entry.title },
+          },
+          " ",
+        ])
+      },
+      aliases: [entry.filename.replace(/\.md$/, ''), ...entry.aliases],
+      group: entry.isA || 'Note',
+    }))
+    return filterSuggestionItems(items, query)
+  }, [entries, editor])
 
   const isDark = typeof document !== 'undefined' && document.documentElement.getAttribute('data-theme') !== 'light'
 
@@ -129,12 +221,18 @@ function BlockNoteTab({ content, onNavigateWikilink }: { content: string; onNavi
       <BlockNoteView
         editor={editor}
         theme={isDark ? 'dark' : 'light'}
-      />
+      >
+        {/* Wikilink suggestion menu triggered by [[ */}
+        <SuggestionMenuController
+          triggerCharacter="[["
+          getItems={getWikilinkItems}
+        />
+      </BlockNoteView>
     </div>
   )
 }
 
-export function Editor({ tabs, activeTabPath, onSwitchTab, onCloseTab, onNavigateWikilink, onLoadDiff, isModified }: EditorProps) {
+export function Editor({ tabs, activeTabPath, entries, onSwitchTab, onCloseTab, onNavigateWikilink, onLoadDiff, isModified }: EditorProps) {
   const [diffMode, setDiffMode] = useState(false)
   const [diffContent, setDiffContent] = useState<string | null>(null)
   const [diffLoading, setDiffLoading] = useState(false)
@@ -221,6 +319,7 @@ export function Editor({ tabs, activeTabPath, onSwitchTab, onCloseTab, onNavigat
           <BlockNoteTab
             key={activeTabPath}
             content={activeTab.content}
+            entries={entries}
             onNavigateWikilink={onNavigateWikilink}
           />
         )
