@@ -9,14 +9,104 @@
   font-weight: 400;
   font-size: 14px;
 
-  color-scheme: dark;
-  color: #e0e0e0;
-  background-color: #0f0f1a;
-
   font-synthesis: none;
   text-rendering: optimizeLegibility;
   -webkit-font-smoothing: antialiased;
   -moz-osx-font-smoothing: grayscale;
+
+  /* Dark theme (default) */
+  color-scheme: dark;
+
+  /* Backgrounds */
+  --bg-primary: #0f0f1a;
+  --bg-sidebar: #1a1a2e;
+  --bg-card: #16162a;
+  --bg-hover: #252545;
+  --bg-hover-subtle: #1e1e3a;
+  --bg-selected: #24244a;
+  --bg-input: #1e1e3a;
+  --bg-button: #2a2a4a;
+  --bg-dialog: #1e1e3a;
+
+  /* Text */
+  --text-primary: #e0e0e0;
+  --text-secondary: #aaa;
+  --text-tertiary: #888;
+  --text-muted: #666;
+  --text-faint: #555;
+  --text-heading: #ffffff;
+
+  /* Accents */
+  --accent-blue: #4a9eff;
+  --accent-blue-bg: #4a9eff18;
+  --accent-blue-hover: #3a8eef;
+  --accent-green: #4caf50;
+  --accent-orange: #ff9800;
+  --accent-red: #f44336;
+  --accent-purple: #9c72ff;
+
+  /* Borders */
+  --border-primary: #2a2a4a;
+  --border-subtle: rgba(42, 42, 74, 0.5);
+  --border-input: #2a2a4a;
+  --border-dialog: #4a4a6a;
+
+  /* Links */
+  --link-color: #7eb8da;
+  --link-hover: #a8d8f0;
+
+  /* Shadows */
+  --shadow-overlay: rgba(0, 0, 0, 0.6);
+  --shadow-dialog: rgba(0, 0, 0, 0.5);
+
+  color: var(--text-primary);
+  background-color: var(--bg-primary);
+}
+
+[data-theme="light"] {
+  color-scheme: light;
+
+  /* Backgrounds */
+  --bg-primary: #FFFFFF;
+  --bg-sidebar: #F7F6F3;
+  --bg-card: #FFFFFF;
+  --bg-hover: #EBEBEA;
+  --bg-hover-subtle: #F0F0EF;
+  --bg-selected: #E8F4FE;
+  --bg-input: #FFFFFF;
+  --bg-button: #EBEBEA;
+  --bg-dialog: #FFFFFF;
+
+  /* Text */
+  --text-primary: #37352F;
+  --text-secondary: #787774;
+  --text-tertiary: #787774;
+  --text-muted: #B4B4B4;
+  --text-faint: #B4B4B4;
+  --text-heading: #37352F;
+
+  /* Accents */
+  --accent-blue: #2383E2;
+  --accent-blue-bg: #2383E218;
+  --accent-blue-hover: #1a6bb5;
+  --accent-green: #0F7B6C;
+  --accent-orange: #D9730D;
+  --accent-red: #E03E3E;
+  --accent-purple: #9065B0;
+
+  /* Borders */
+  --border-primary: #E9E9E7;
+  --border-subtle: #E9E9E7;
+  --border-input: #E9E9E7;
+  --border-dialog: #E9E9E7;
+
+  /* Links */
+  --link-color: #2383E2;
+  --link-hover: #1a6bb5;
+
+  /* Shadows */
+  --shadow-overlay: rgba(0, 0, 0, 0.3);
+  --shadow-dialog: rgba(0, 0, 0, 0.15);
 }
 
 body {

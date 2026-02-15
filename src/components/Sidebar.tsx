@@ -1,4 +1,4 @@
-import { useState } from 'react'
+import { useState, useEffect } from 'react'
 import type { VaultEntry, SidebarSelection } from '../types'
 import './Sidebar.css'
 
@@ -26,6 +26,26 @@ const SECTION_GROUPS = [
 
 export function Sidebar({ entries, selection, onSelect, onSelectNote }: SidebarProps) {
   const [collapsed, setCollapsed] = useState<Record<string, boolean>>({})
+  const [theme, setTheme] = useState<'dark' | 'light'>(() => {
+    try {
+      return (localStorage.getItem('laputa-theme') as 'dark' | 'light') || 'dark'
+    } catch {
+      return 'dark'
+    }
+  })
+
+  useEffect(() => {
+    document.documentElement.setAttribute('data-theme', theme)
+    try {
+      localStorage.setItem('laputa-theme', theme)
+    } catch {
+      // localStorage unavailable (e.g. in tests)
+    }
+  }, [theme])
+
+  const toggleTheme = () => {
+    setTheme((prev) => (prev === 'dark' ? 'light' : 'dark'))
+  }
 
   const toggleSection = (type: string) => {
     setCollapsed((prev) => ({ ...prev, [type]: !prev[type] }))
@@ -44,6 +64,13 @@ export function Sidebar({ entries, selection, onSelect, onSelectNote }: SidebarP
     <aside className="sidebar">
       <div className="sidebar__header" data-tauri-drag-region>
         <h2>Laputa</h2>
+        <button
+          className="sidebar__theme-toggle"
+          onClick={toggleTheme}
+          title={theme === 'dark' ? 'Switch to light mode' : 'Switch to dark mode'}
+        >
+          {theme === 'dark' ? '\u2600' : '\u263D'}
+        </button>
       </div>
 
       <nav className="sidebar__nav">
@@ -81,7 +108,7 @@ export function Sidebar({ entries, selection, onSelect, onSelectNote }: SidebarP
                   }}
                   aria-label={isCollapsed ? `Expand ${label}` : `Collapse ${label}`}
                 >
-                  {isCollapsed ? '▸' : '▾'}
+                  {isCollapsed ? '\u25B8' : '\u25BE'}
                 </button>
                 <span className="sidebar__section-label">{label}</span>
                 <span className="sidebar__section-count">{items.length}</span>

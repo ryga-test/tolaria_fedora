@@ -1,10 +1,10 @@
 .inspector {
-  background: #1a1a2e;
-  color: #e0e0e0;
+  background: var(--bg-sidebar);
+  color: var(--text-primary);
   display: flex;
   flex-direction: column;
   overflow-y: auto;
-  border-left: 1px solid #2a2a4a;
+  border-left: 1px solid var(--border-primary);
   transition: width 0.2s ease;
 }
 
@@ -15,7 +15,7 @@
 
 .inspector__header {
   padding: 14px 12px;
-  border-bottom: 1px solid #2a2a4a;
+  border-bottom: 1px solid var(--border-primary);
   display: flex;
   align-items: center;
   gap: 8px;
@@ -34,20 +34,20 @@
   font-weight: 600;
   text-transform: uppercase;
   letter-spacing: 0.04em;
-  color: #999;
+  color: var(--text-tertiary);
 }
 
 .inspector__toggle {
   background: none;
   border: none;
-  color: #888;
+  color: var(--text-tertiary);
   cursor: pointer;
   padding: 4px;
   font-size: 12px;
 }
 
 .inspector__toggle:hover {
-  color: #fff;
+  color: var(--text-heading);
 }
 
 .inspector__content {
@@ -62,13 +62,13 @@
   margin: 0 0 8px;
   font-size: 12px;
   text-transform: uppercase;
-  color: #888;
+  color: var(--text-tertiary);
   letter-spacing: 0.5px;
 }
 
 .inspector__empty {
   font-size: 13px;
-  color: #555;
+  color: var(--text-faint);
   margin: 0;
 }
 
@@ -87,12 +87,15 @@
 }
 
 .inspector__prop-label {
-  color: #888;
+  color: var(--text-tertiary);
   flex-shrink: 0;
+  display: flex;
+  align-items: center;
+  gap: 4px;
 }
 
 .inspector__prop-value {
-  color: #ccc;
+  color: var(--text-secondary);
   text-align: right;
 }
 
@@ -104,13 +107,13 @@
 }
 
 .inspector__prop-value--editable:hover {
-  background-color: rgba(255, 255, 255, 0.1);
+  background-color: var(--bg-hover);
 }
 
 .inspector__edit-input {
-  background: #2a2a4a;
-  border: 1px solid #4a4a6a;
-  color: #fff;
+  background: var(--bg-button);
+  border: 1px solid var(--border-dialog);
+  color: var(--text-heading);
   padding: 4px 8px;
   border-radius: 4px;
   font-size: 13px;
@@ -120,21 +123,13 @@
 
 .inspector__edit-input:focus {
   outline: none;
-  border-color: #7eb8da;
-}
-
-.inspector__prop-label {
-  color: #888;
-  flex-shrink: 0;
-  display: flex;
-  align-items: center;
-  gap: 4px;
+  border-color: var(--link-color);
 }
 
 .inspector__prop-delete {
   background: none;
   border: none;
-  color: #666;
+  color: var(--text-muted);
   cursor: pointer;
   padding: 0;
   font-size: 14px;
@@ -148,7 +143,7 @@
 }
 
 .inspector__prop-delete:hover {
-  color: #f44336;
+  color: var(--accent-red);
 }
 
 .inspector__status-pill {
@@ -171,8 +166,8 @@
 
 .inspector__bool-toggle {
   background: none;
-  border: 1px solid #444;
-  color: #ccc;
+  border: 1px solid var(--border-primary);
+  color: var(--text-secondary);
   padding: 2px 8px;
   border-radius: 4px;
   cursor: pointer;
@@ -181,8 +176,8 @@
 }
 
 .inspector__bool-toggle:hover {
-  background: rgba(255, 255, 255, 0.1);
-  border-color: #666;
+  background: var(--bg-hover);
+  border-color: var(--text-muted);
 }
 
 /* List editor */
@@ -201,7 +196,7 @@
 
 .inspector__list-item-text {
   flex: 1;
-  color: #ccc;
+  color: var(--text-secondary);
   font-size: 13px;
   cursor: pointer;
   padding: 2px 4px;
@@ -213,13 +208,13 @@
 }
 
 .inspector__list-item-text:hover {
-  background-color: rgba(255, 255, 255, 0.1);
+  background-color: var(--bg-hover);
 }
 
 .inspector__list-item-delete {
   background: none;
   border: none;
-  color: #666;
+  color: var(--text-muted);
   cursor: pointer;
   padding: 0 4px;
   font-size: 14px;
@@ -233,13 +228,13 @@
 }
 
 .inspector__list-item-delete:hover {
-  color: #f44336;
+  color: var(--accent-red);
 }
 
 .inspector__list-add {
   background: none;
   border: none;
-  color: #666;
+  color: var(--text-muted);
   font-size: 12px;
   padding: 4px 0;
   cursor: pointer;
@@ -247,14 +242,14 @@
 }
 
 .inspector__list-add:hover {
-  color: #888;
+  color: var(--text-tertiary);
 }
 
 .inspector__add-prop {
   margin-top: 12px;
   background: none;
-  border: 1px dashed #444;
-  color: #666;
+  border: 1px dashed var(--border-primary);
+  color: var(--text-muted);
   padding: 6px 12px;
   border-radius: 6px;
   cursor: pointer;
@@ -264,8 +259,8 @@
 }
 
 .inspector__add-prop:hover:not(:disabled) {
-  border-color: #7eb8da;
-  color: #7eb8da;
+  border-color: var(--link-color);
+  color: var(--link-color);
 }
 
 .inspector__add-prop:disabled {
@@ -280,9 +275,9 @@
   flex-direction: column;
   gap: 8px;
   padding: 12px;
-  background: #2a2a4a;
+  background: var(--bg-button);
   border-radius: 6px;
-  border: 1px solid #4a4a6a;
+  border: 1px solid var(--border-dialog);
 }
 
 .inspector__add-dialog-buttons {
@@ -292,9 +287,9 @@
 }
 
 .inspector__add-dialog-buttons button {
-  background: #3a3a5a;
+  background: var(--bg-hover);
   border: none;
-  color: #ccc;
+  color: var(--text-secondary);
   padding: 6px 12px;
   border-radius: 4px;
   cursor: pointer;
@@ -303,16 +298,17 @@
 }
 
 .inspector__add-dialog-buttons button:hover:not(:disabled) {
-  background: #4a4a6a;
-  color: #fff;
+  background: var(--border-dialog);
+  color: var(--text-heading);
 }
 
 .inspector__add-dialog-buttons button:first-child {
-  background: #4a6a8a;
+  background: var(--accent-blue);
+  color: #fff;
 }
 
 .inspector__add-dialog-buttons button:first-child:hover:not(:disabled) {
-  background: #5a7a9a;
+  background: var(--accent-blue-hover);
 }
 
 .inspector__add-dialog-buttons button:disabled {
@@ -328,7 +324,7 @@
 .inspector__rel-label {
   display: block;
   font-size: 11px;
-  color: #666;
+  color: var(--text-muted);
   margin-bottom: 4px;
 }
 
@@ -341,7 +337,7 @@
 .inspector__rel-link {
   background: none;
   border: none;
-  color: #7eb8da;
+  color: var(--link-color);
   font-size: 13px;
   padding: 2px 0;
   cursor: pointer;
@@ -349,14 +345,14 @@
 }
 
 .inspector__rel-link:hover {
-  color: #a8d8f0;
+  color: var(--link-hover);
   text-decoration: underline;
 }
 
 /* Backlinks */
 .inspector__count {
   font-size: 11px;
-  color: #666;
+  color: var(--text-muted);
   font-weight: 400;
   margin-left: 4px;
 }
@@ -373,7 +369,7 @@
   align-items: center;
   background: none;
   border: none;
-  color: #7eb8da;
+  color: var(--link-color);
   font-size: 13px;
   padding: 4px 0;
   cursor: pointer;
@@ -382,7 +378,7 @@
 }
 
 .inspector__backlink:hover {
-  color: #a8d8f0;
+  color: var(--link-hover);
 }
 
 .inspector__backlink-title {
@@ -394,7 +390,7 @@
 
 .inspector__backlink-type {
   font-size: 11px;
-  color: #555;
+  color: var(--text-faint);
   flex-shrink: 0;
 }
 
@@ -406,7 +402,7 @@
 }
 
 .inspector__commit {
-  border-left: 2px solid #333;
+  border-left: 2px solid var(--border-primary);
   padding-left: 10px;
 }
 
@@ -420,17 +416,17 @@
 .inspector__commit-hash {
   font-family: 'SF Mono', 'Menlo', monospace;
   font-size: 11px;
-  color: #7eb8da;
+  color: var(--link-color);
 }
 
 .inspector__commit-date {
   font-size: 11px;
-  color: #666;
+  color: var(--text-muted);
 }
 
 .inspector__commit-msg {
   font-size: 12px;
-  color: #aaa;
+  color: var(--text-secondary);
   overflow: hidden;
   text-overflow: ellipsis;
   white-space: nowrap;
@@ -440,12 +436,12 @@
   margin-top: 10px;
   background: none;
   border: none;
-  color: #666;
+  color: var(--text-muted);
   font-size: 12px;
   padding: 4px 0;
   cursor: not-allowed;
 }
 
 .inspector__view-all:hover {
-  color: #888;
+  color: var(--text-tertiary);
 }

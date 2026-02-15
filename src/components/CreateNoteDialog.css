@@ -4,7 +4,7 @@
   left: 0;
   right: 0;
   bottom: 0;
-  background: rgba(0, 0, 0, 0.6);
+  background: var(--shadow-overlay);
   display: flex;
   align-items: center;
   justify-content: center;
@@ -12,20 +12,20 @@
 }
 
 .create-dialog {
-  background: #1e1e3a;
-  border: 1px solid #2a2a4a;
+  background: var(--bg-dialog);
+  border: 1px solid var(--border-primary);
   border-radius: 12px;
   padding: 24px;
   width: 420px;
   max-width: 90vw;
-  box-shadow: 0 8px 32px rgba(0, 0, 0, 0.5);
+  box-shadow: 0 8px 32px var(--shadow-dialog);
 }
 
 .create-dialog__title {
   margin: 0 0 20px 0;
   font-size: 16px;
   font-weight: 600;
-  color: #e0e0e0;
+  color: var(--text-primary);
 }
 
 .create-dialog__field {
@@ -35,7 +35,7 @@
 .create-dialog__label {
   display: block;
   font-size: 12px;
-  color: #888;
+  color: var(--text-tertiary);
   margin-bottom: 6px;
   text-transform: uppercase;
   letter-spacing: 0.5px;
@@ -44,21 +44,21 @@
 .create-dialog__input {
   width: 100%;
   padding: 8px 12px;
-  background: #16162a;
-  border: 1px solid #2a2a4a;
+  background: var(--bg-input);
+  border: 1px solid var(--border-primary);
   border-radius: 6px;
-  color: #e0e0e0;
+  color: var(--text-primary);
   font-size: 14px;
   outline: none;
   box-sizing: border-box;
 }
 
 .create-dialog__input:focus {
-  border-color: #4a9eff;
+  border-color: var(--accent-blue);
 }
 
 .create-dialog__input::placeholder {
-  color: #555;
+  color: var(--text-faint);
 }
 
 .create-dialog__types {
@@ -70,23 +70,23 @@
 .create-dialog__type-btn {
   padding: 4px 12px;
   font-size: 12px;
-  border: 1px solid #2a2a4a;
+  border: 1px solid var(--border-primary);
   border-radius: 14px;
   background: transparent;
-  color: #888;
+  color: var(--text-tertiary);
   cursor: pointer;
   transition: all 0.15s;
 }
 
 .create-dialog__type-btn:hover {
-  background: #2a2a4a;
-  color: #e0e0e0;
+  background: var(--bg-button);
+  color: var(--text-primary);
 }
 
 .create-dialog__type-btn--active {
-  background: #4a9eff;
+  background: var(--accent-blue);
   color: #fff;
-  border-color: #4a9eff;
+  border-color: var(--accent-blue);
 }
 
 .create-dialog__actions {
@@ -107,22 +107,22 @@
 
 .create-dialog__btn--cancel {
   background: transparent;
-  color: #888;
-  border: 1px solid #2a2a4a;
+  color: var(--text-tertiary);
+  border: 1px solid var(--border-primary);
 }
 
 .create-dialog__btn--cancel:hover {
-  background: #2a2a4a;
-  color: #e0e0e0;
+  background: var(--bg-button);
+  color: var(--text-primary);
 }
 
 .create-dialog__btn--create {
-  background: #4a9eff;
+  background: var(--accent-blue);
   color: #fff;
 }
 
 .create-dialog__btn--create:hover {
-  background: #3a8eef;
+  background: var(--accent-blue-hover);
 }
 
 .create-dialog__btn--create:disabled {

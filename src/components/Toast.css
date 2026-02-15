@@ -3,12 +3,12 @@
   bottom: 32px;
   left: 50%;
   transform: translateX(-50%);
-  background: #2a2a4a;
-  color: #e0e0e0;
+  background: var(--bg-button);
+  color: var(--text-primary);
   padding: 8px 20px;
   border-radius: 8px;
   font-size: 13px;
-  box-shadow: 0 4px 16px rgba(0, 0, 0, 0.4);
+  box-shadow: 0 4px 16px var(--shadow-dialog);
   z-index: 1100;
   animation: toast-in 0.2s ease-out;
 }

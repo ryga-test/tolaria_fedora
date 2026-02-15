@@ -1,15 +1,15 @@
 .note-list {
-  background: #16162a;
-  color: #e0e0e0;
+  background: var(--bg-card);
+  color: var(--text-primary);
   display: flex;
   flex-direction: column;
   overflow-y: auto;
-  border-right: 1px solid #2a2a4a;
+  border-right: 1px solid var(--border-primary);
 }
 
 .note-list__header {
   padding: 14px 16px;
-  border-bottom: 1px solid #2a2a4a;
+  border-bottom: 1px solid var(--border-primary);
   display: flex;
   align-items: center;
   justify-content: space-between;
@@ -41,8 +41,8 @@
 
 .note-list__count {
   font-size: 11px;
-  color: #777;
-  background: #2a2a4a;
+  color: var(--text-tertiary);
+  background: var(--bg-button);
   padding: 2px 8px;
   border-radius: 10px;
 }
@@ -52,8 +52,8 @@
   height: 24px;
   border: none;
   border-radius: 6px;
-  background: #2a2a4a;
-  color: #888;
+  background: var(--bg-button);
+  color: var(--text-tertiary);
   font-size: 16px;
   line-height: 1;
   cursor: pointer;
@@ -65,23 +65,23 @@
 }
 
 .note-list__add-btn:hover {
-  background: #4a9eff;
+  background: var(--accent-blue);
   color: #fff;
 }
 
 /* Search */
 .note-list__search {
   padding: 8px 12px;
-  border-bottom: 1px solid #2a2a4a;
+  border-bottom: 1px solid var(--border-primary);
 }
 
 .note-list__search-input {
   width: 100%;
   padding: 7px 10px;
-  background: #1e1e3a;
-  border: 1px solid #2a2a4a;
+  background: var(--bg-input);
+  border: 1px solid var(--border-input);
   border-radius: 6px;
-  color: #e0e0e0;
+  color: var(--text-primary);
   font-size: 13px;
   outline: none;
   box-sizing: border-box;
@@ -89,11 +89,11 @@
 }
 
 .note-list__search-input::placeholder {
-  color: #555;
+  color: var(--text-faint);
 }
 
 .note-list__search-input:focus {
-  border-color: #4a9eff;
+  border-color: var(--accent-blue);
 }
 
 /* Type filter pills */
@@ -101,25 +101,25 @@
   display: flex;
   gap: 4px;
   padding: 8px 12px;
-  border-bottom: 1px solid #2a2a4a;
+  border-bottom: 1px solid var(--border-primary);
   flex-wrap: wrap;
 }
 
 .note-list__pill {
   padding: 3px 10px;
   font-size: 11px;
-  border: 1px solid #2a2a4a;
+  border: 1px solid var(--border-primary);
   border-radius: 12px;
   background: transparent;
-  color: #777;
+  color: var(--text-tertiary);
   cursor: pointer;
   white-space: nowrap;
   transition: all 0.15s;
 }
 
 .note-list__pill:hover {
-  background: #2a2a4a;
-  color: #ccc;
+  background: var(--bg-button);
+  color: var(--text-secondary);
 }
 
 .note-list__pill-count {
@@ -129,9 +129,9 @@
 }
 
 .note-list__pill--active {
-  background: #4a9eff22;
-  color: #4a9eff;
-  border-color: #4a9eff44;
+  background: var(--accent-blue-bg);
+  color: var(--accent-blue);
+  border-color: var(--accent-blue-bg);
 }
 
 .note-list__pill--active .note-list__pill-count {
@@ -145,7 +145,7 @@
 
 .note-list__empty {
   padding: 32px 16px;
-  color: #555;
+  color: var(--text-faint);
   font-size: 13px;
   text-align: center;
 }
@@ -153,13 +153,13 @@
 /* Note items */
 .note-list__item {
   padding: 10px 16px;
-  border-bottom: 1px solid rgba(42, 42, 74, 0.5);
+  border-bottom: 1px solid var(--border-subtle);
   cursor: pointer;
   transition: background 0.1s;
 }
 
 .note-list__item:hover {
-  background: #1e1e3a;
+  background: var(--bg-hover-subtle);
 }
 
 .note-list__item-top {
@@ -172,7 +172,7 @@
 .note-list__title {
   font-size: 13px;
   font-weight: 600;
-  color: #e0e0e0;
+  color: var(--text-primary);
   overflow: hidden;
   text-overflow: ellipsis;
   white-space: nowrap;
@@ -182,14 +182,14 @@
 
 .note-list__date {
   font-size: 11px;
-  color: #555;
+  color: var(--text-faint);
   flex-shrink: 0;
   white-space: nowrap;
 }
 
 .note-list__snippet {
   font-size: 12px;
-  color: #666;
+  color: var(--text-muted);
   margin-top: 3px;
   overflow: hidden;
   text-overflow: ellipsis;
@@ -201,7 +201,7 @@
   display: flex;
   gap: 6px;
   font-size: 11px;
-  color: #888;
+  color: var(--text-tertiary);
   margin-top: 5px;
 }
 
@@ -255,30 +255,30 @@
 }
 
 .note-list__status {
-  color: #4caf50;
+  color: var(--accent-green);
   font-size: 10px;
 }
 
 /* Selected & pinned states */
 .note-list__item--selected {
-  background: #24244a;
-  border-left: 3px solid #4a9eff;
+  background: var(--bg-selected);
+  border-left: 3px solid var(--accent-blue);
   padding-left: 13px;
 }
 
 .note-list__item--selected:hover {
-  background: #28284e;
+  background: var(--bg-selected);
 }
 
 .note-list__item--pinned {
-  background: #1e1e3a;
-  border-left: 3px solid #4caf50;
+  background: var(--bg-hover-subtle);
+  border-left: 3px solid var(--accent-green);
   padding-left: 13px;
 }
 
 /* Relationship groups */
 .note-list__group {
-  border-top: 1px solid rgba(42, 42, 74, 0.5);
+  border-top: 1px solid var(--border-subtle);
 }
 
 .note-list__group-header {
@@ -293,13 +293,13 @@
   font-weight: 600;
   letter-spacing: 0.05em;
   text-transform: uppercase;
-  color: #666;
+  color: var(--text-muted);
 }
 
 .note-list__group-count {
   font-size: 10px;
-  color: #555;
-  background: #2a2a4a;
+  color: var(--text-faint);
+  background: var(--bg-button);
   padding: 1px 6px;
   border-radius: 8px;
 }

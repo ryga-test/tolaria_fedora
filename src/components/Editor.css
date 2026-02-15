@@ -1,6 +1,6 @@
 .editor {
-  background: #0f0f1a;
-  color: #e0e0e0;
+  background: var(--bg-primary);
+  color: var(--text-primary);
   display: flex;
   flex-direction: column;
   flex: 1;
@@ -15,7 +15,7 @@
   justify-content: center;
   height: 100%;
   text-align: center;
-  color: #444;
+  color: var(--text-muted);
   gap: 8px;
 }
 
@@ -26,7 +26,7 @@
 
 .editor__placeholder-hint {
   font-size: 12px;
-  color: #383858;
+  color: var(--text-faint);
 }
 
 /* Drag strip for frameless window (shown when no tabs are open) */
@@ -40,8 +40,8 @@
 /* Tab bar */
 .editor__tab-bar {
   display: flex;
-  background: #16162a;
-  border-bottom: 1px solid #2a2a4a;
+  background: var(--bg-card);
+  border-bottom: 1px solid var(--border-primary);
   overflow-x: auto;
   flex-shrink: 0;
   -webkit-app-region: drag;
@@ -58,9 +58,9 @@
   gap: 6px;
   padding: 7px 14px;
   font-size: 12px;
-  color: #777;
+  color: var(--text-tertiary);
   cursor: pointer;
-  border-right: 1px solid #2a2a4a;
+  border-right: 1px solid var(--border-primary);
   white-space: nowrap;
   max-width: 180px;
   flex-shrink: 0;
@@ -70,14 +70,14 @@
 }
 
 .editor__tab:hover {
-  background: #1a1a35;
-  color: #bbb;
+  background: var(--bg-hover-subtle);
+  color: var(--text-secondary);
 }
 
 .editor__tab--active {
-  background: #0f0f1a;
-  color: #e0e0e0;
-  border-bottom: 2px solid #4a9eff;
+  background: var(--bg-primary);
+  color: var(--text-primary);
+  border-bottom: 2px solid var(--accent-blue);
 }
 
 .editor__tab-title {
@@ -88,7 +88,7 @@
 .editor__tab-close {
   background: none;
   border: none;
-  color: #666;
+  color: var(--text-muted);
   cursor: pointer;
   font-size: 14px;
   padding: 0 2px;
@@ -104,8 +104,8 @@
 }
 
 .editor__tab-close:hover {
-  background: #3a3a5a;
-  color: #e0e0e0;
+  background: var(--bg-hover);
+  color: var(--text-primary);
 }
 
 /* CodeMirror container */

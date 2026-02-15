@@ -1,6 +1,6 @@
 .sidebar {
-  background: #1a1a2e;
-  color: #e0e0e0;
+  background: var(--bg-sidebar);
+  color: var(--text-primary);
   display: flex;
   flex-direction: column;
   overflow-y: auto;
@@ -10,23 +10,46 @@
 .sidebar__header {
   padding: 12px 16px;
   padding-left: 78px; /* space for macOS traffic light buttons */
-  border-bottom: 1px solid #2a2a4a;
+  border-bottom: 1px solid var(--border-primary);
   flex-shrink: 0;
   -webkit-app-region: drag;
   app-region: drag;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
 }
 
 .sidebar__header h2 {
   margin: 0;
   font-size: 17px;
   font-weight: 700;
-  color: #ffffff;
+  color: var(--text-heading);
   letter-spacing: -0.01em;
 }
 
 .sidebar__header button {
   -webkit-app-region: no-drag;
   app-region: no-drag;
+}
+
+.sidebar__theme-toggle {
+  background: none;
+  border: none;
+  color: var(--text-tertiary);
+  cursor: pointer;
+  font-size: 16px;
+  padding: 4px 6px;
+  border-radius: 6px;
+  line-height: 1;
+  transition: all 0.15s;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.sidebar__theme-toggle:hover {
+  background: var(--bg-hover);
+  color: var(--text-heading);
 }
 
 .sidebar__nav {
@@ -39,7 +62,7 @@
 .sidebar__filters {
   padding: 4px 0;
   margin-bottom: 8px;
-  border-bottom: 1px solid #2a2a4a;
+  border-bottom: 1px solid var(--border-primary);
 }
 
 .sidebar__filter-item {
@@ -49,17 +72,17 @@
   border-radius: 6px;
   margin: 1px 6px;
   transition: all 0.12s;
-  color: #aaa;
+  color: var(--text-secondary);
 }
 
 .sidebar__filter-item:hover {
-  background: #252545;
-  color: #ddd;
+  background: var(--bg-hover);
+  color: var(--text-primary);
 }
 
 .sidebar__filter-item--active {
-  background: #4a9eff18;
-  color: #4a9eff;
+  background: var(--accent-blue-bg);
+  color: var(--accent-blue);
   font-weight: 500;
 }
 
@@ -78,18 +101,18 @@
   font-size: 11px;
   font-weight: 600;
   letter-spacing: 0.05em;
-  color: #888;
+  color: var(--text-tertiary);
   user-select: none;
 }
 
 .sidebar__section-header:hover {
-  background: #2a2a4a;
-  color: #bbb;
+  background: var(--bg-button);
+  color: var(--text-secondary);
 }
 
 .sidebar__section-header--active {
-  background: #2a2a4a;
-  color: #ffffff;
+  background: var(--bg-button);
+  color: var(--text-heading);
 }
 
 .sidebar__collapse-btn {
@@ -110,14 +133,14 @@
 
 .sidebar__section-count {
   font-size: 10px;
-  color: #666;
+  color: var(--text-muted);
   margin-right: 4px;
 }
 
 .sidebar__add-btn {
   background: none;
   border: none;
-  color: #666;
+  color: var(--text-muted);
   font-size: 14px;
   cursor: pointer;
   padding: 0 2px;
@@ -132,8 +155,8 @@
 }
 
 .sidebar__add-btn:hover {
-  color: #ffffff;
-  background: #3a3a5a;
+  color: var(--text-heading);
+  background: var(--bg-hover);
 }
 
 /* Section items (entity list) */
@@ -150,18 +173,18 @@
   white-space: nowrap;
   overflow: hidden;
   text-overflow: ellipsis;
-  color: #bbb;
+  color: var(--text-secondary);
   transition: all 0.12s;
 }
 
 .sidebar__item:hover {
-  background: #252545;
-  color: #ddd;
+  background: var(--bg-hover);
+  color: var(--text-primary);
 }
 
 .sidebar__item--active {
-  background: #4a9eff18;
-  color: #4a9eff;
+  background: var(--accent-blue-bg);
+  color: var(--accent-blue);
   font-weight: 500;
 }
 
@@ -169,7 +192,7 @@
 .sidebar__topics {
   margin-top: 8px;
   padding-top: 8px;
-  border-top: 1px solid #2a2a4a;
+  border-top: 1px solid var(--border-primary);
 }
 
 .sidebar__topics-header {
@@ -177,7 +200,7 @@
   font-size: 11px;
   font-weight: 600;
   letter-spacing: 0.05em;
-  color: #888;
+  color: var(--text-tertiary);
   user-select: none;
 }
 
@@ -190,17 +213,17 @@
   white-space: nowrap;
   overflow: hidden;
   text-overflow: ellipsis;
-  color: #bbb;
+  color: var(--text-secondary);
   transition: all 0.12s;
 }
 
 .sidebar__topic-item:hover {
-  background: #252545;
-  color: #ddd;
+  background: var(--bg-hover);
+  color: var(--text-primary);
 }
 
 .sidebar__topic-item--active {
-  background: #4a9eff18;
-  color: #4a9eff;
+  background: var(--accent-blue-bg);
+  color: var(--accent-blue);
   font-weight: 500;
 }
