@@ -289,16 +289,16 @@ function NoteListInner({ entries, selection, selectedNote, allContent, modifiedF
           style={{ color: typeColor }}
           data-testid="type-icon"
         />
-        <div className="flex items-baseline justify-between gap-2 pr-5">
+        <div className="pr-5">
           <div className={cn(
-            "min-w-0 flex-1 truncate text-[13px] text-foreground",
+            "truncate text-[13px] text-foreground",
             isSelected ? "font-semibold" : "font-medium"
           )}>
-            <span className="truncate">{entry.title}</span>
+            {entry.title}
           </div>
-          <span className="shrink-0 whitespace-nowrap text-[11px] text-muted-foreground">
+          <div className="text-[10px] text-muted-foreground">
             {relativeDate(getDisplayDate(entry))}
-          </span>
+          </div>
         </div>
         <div className="mt-0.5 text-[12px] leading-[1.5] text-muted-foreground" style={{ display: '-webkit-box', WebkitLineClamp: 2, WebkitBoxOrient: 'vertical', overflow: 'hidden' }}>
           {entry.snippet}
