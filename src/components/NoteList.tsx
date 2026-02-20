@@ -5,7 +5,7 @@ import { cn } from '@/lib/utils'
 import { Input } from '@/components/ui/input'
 import {
   MagnifyingGlass, Plus, Wrench, Flask, Target, ArrowsClockwise,
-  Users, CalendarBlank, Tag, FileText, CaretDown, CaretRight,
+  Users, CalendarBlank, Tag, FileText, CaretDown, CaretRight, StackSimple,
 } from '@phosphor-icons/react'
 import type { ComponentType, SVGAttributes } from 'react'
 import { getTypeColor, getTypeLightColor } from '../utils/typeColors'
@@ -18,6 +18,7 @@ const TYPE_ICON_MAP: Record<string, ComponentType<SVGAttributes<SVGSVGElement>>>
   Person: Users,
   Event: CalendarBlank,
   Topic: Tag,
+  Type: StackSimple,
 }
 
 function getTypeIcon(isA: string | null): ComponentType<SVGAttributes<SVGSVGElement>> {

@@ -15,6 +15,7 @@ import {
   Tag,
   TagSimple,
   Trash,
+  StackSimple,
   type IconProps,
 } from '@phosphor-icons/react'
 
@@ -40,6 +41,7 @@ const SECTION_GROUPS: { label: string; type: string; Icon: ComponentType<IconPro
   { label: 'People', type: 'Person', Icon: Users },
   { label: 'Events', type: 'Event', Icon: CalendarBlank },
   { label: 'Topics', type: 'Topic', Icon: Tag },
+  { label: 'Types', type: 'Type', Icon: StackSimple },
 ]
 
 export const Sidebar = memo(function Sidebar({ entries, selection, onSelect, onSelectNote, modifiedCount = 0, onCommitPush }: SidebarProps) {

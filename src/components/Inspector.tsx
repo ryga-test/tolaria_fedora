@@ -4,7 +4,7 @@ import type { VaultEntry, GitCommit } from '../types'
 import { cn } from '@/lib/utils'
 import {
   SlidersHorizontal, X, Wrench, Flask, Target, ArrowsClockwise,
-  Users, CalendarBlank, Tag, FileText,
+  Users, CalendarBlank, Tag, FileText, StackSimple,
 } from '@phosphor-icons/react'
 import { parseFrontmatter, type ParsedFrontmatter } from '../utils/frontmatter'
 import { DynamicPropertiesPanel, RELATIONSHIP_KEYS, containsWikilinks } from './DynamicPropertiesPanel'
@@ -18,6 +18,7 @@ const TYPE_ICON_MAP: Record<string, ComponentType<SVGAttributes<SVGSVGElement>>>
   Person: Users,
   Event: CalendarBlank,
   Topic: Tag,
+  Type: StackSimple,
 }
 
 function getTypeIcon(isA: string | undefined): ComponentType<SVGAttributes<SVGSVGElement>> {
