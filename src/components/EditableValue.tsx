@@ -49,7 +49,7 @@ export function EditableValue({
   )
 }
 
-export function EditableList({
+export function TagPillList({
   items,
   onSave,
   label,
@@ -110,56 +110,70 @@ export function EditableList({
   }
 
   return (
-    <div className="flex w-full flex-col gap-1">
-      {items.map((item, idx) => (
-        <div key={idx} className="group/item flex items-center gap-1">
-          {editingIndex === idx ? (
-            <input
-              className="w-full rounded border border-ring bg-muted px-2 py-1 text-[13px] text-foreground outline-none focus:border-primary"
-              type="text"
-              value={editValue}
-              onChange={(e) => setEditValue(e.target.value)}
-              onKeyDown={(e) => handleKeyDown(e, 'edit')}
-              onBlur={handleSaveEdit}
-              autoFocus
-            />
-          ) : (
-            <>
-              <span
-                className="flex-1 cursor-pointer truncate rounded px-1 py-0.5 text-[13px] text-secondary-foreground transition-colors hover:bg-muted"
-                onClick={() => handleStartEdit(idx)}
-                title="Click to edit"
-              >
-                {item}
-              </span>
-              <button
-                className="border-none bg-transparent p-0 px-1 text-sm leading-none text-muted-foreground opacity-0 transition-all hover:text-destructive group-hover/item:opacity-100"
-                onClick={() => handleDeleteItem(idx)}
-                title="Remove item"
-              >
-                &times;
-              </button>
-            </>
-          )}
-        </div>
-      ))}
+    <div className="flex flex-wrap items-center gap-1">
+      {items.map((item, idx) =>
+        editingIndex === idx ? (
+          <input
+            key={idx}
+            className="rounded-full border border-ring bg-muted px-2 py-0.5 text-[11px] text-foreground outline-none focus:border-primary"
+            style={{ width: Math.max(60, editValue.length * 7 + 16) }}
+            type="text"
+            value={editValue}
+            onChange={(e) => setEditValue(e.target.value)}
+            onKeyDown={(e) => handleKeyDown(e, 'edit')}
+            onBlur={handleSaveEdit}
+            autoFocus
+          />
+        ) : (
+          <span
+            key={idx}
+            className="group/pill inline-flex cursor-pointer items-center gap-0.5 rounded-full py-0.5 pl-2 pr-1 transition-colors"
+            style={{
+              backgroundColor: 'var(--accent-blue-light)',
+              color: 'var(--accent-blue)',
+              fontSize: 11,
+              fontWeight: 500,
+            }}
+            onClick={() => handleStartEdit(idx)}
+            title="Click to edit"
+          >
+            {item}
+            <button
+              className="ml-0.5 inline-flex h-3.5 w-3.5 items-center justify-center rounded-full border-none bg-transparent p-0 text-[10px] leading-none opacity-0 transition-all hover:bg-[var(--accent-red-light)] hover:text-[var(--accent-red)] group-hover/pill:opacity-100"
+              style={{ color: 'var(--accent-blue)' }}
+              onClick={(e) => {
+                e.stopPropagation()
+                handleDeleteItem(idx)
+              }}
+              title="Remove"
+            >
+              &times;
+            </button>
+          </span>
+        )
+      )}
       {isAddingNew ? (
         <input
-          className="w-full rounded border border-ring bg-muted px-2 py-1 text-[13px] text-foreground outline-none focus:border-primary"
+          className="rounded-full border border-ring bg-muted px-2 py-0.5 text-[11px] text-foreground outline-none focus:border-primary"
+          style={{ width: Math.max(60, newValue.length * 7 + 16) }}
           type="text"
           value={newValue}
           onChange={(e) => setNewValue(e.target.value)}
           onKeyDown={(e) => handleKeyDown(e, 'add')}
-          onBlur={handleAddNew}
-          placeholder={`New ${label.toLowerCase()}...`}
+          onBlur={() => {
+            if (newValue.trim()) handleAddNew()
+            else { setIsAddingNew(false); setNewValue('') }
+          }}
+          placeholder={`${label}...`}
           autoFocus
         />
       ) : (
         <button
-          className="border-none bg-transparent p-0 py-1 text-left text-xs text-muted-foreground hover:text-secondary-foreground"
+          className="inline-flex h-5 w-5 items-center justify-center rounded-full border border-dashed border-[var(--accent-blue)] bg-transparent p-0 text-[12px] leading-none text-[var(--accent-blue)] transition-colors hover:bg-[var(--accent-blue-light)]"
           onClick={() => setIsAddingNew(true)}
+          title={`Add ${label.toLowerCase()}`}
         >
-          + Add item
+          +
         </button>
       )}
     </div>

@@ -27,6 +27,8 @@ title: Build Laputa App
 is_a: Project
 status: Active
 owner: Luca Rossi
+tags: [Tauri, React, TypeScript, CodeMirror]
+tools: [Vite, Vitest, Playwright]
 belongs_to:
   - "[[quarter/q1-2026]]"
 related_to:
@@ -251,6 +253,8 @@ title: Stock Screener — EMA200 Wick Bounce
 is_a: Experiment
 status: Active
 owner: Luca Rossi
+domains: [Finance, Quantitative Analysis]
+tools: [Python, pandas, TradingView]
 related_to:
   - "[[topic/trading]]"
   - "[[topic/algorithmic-trading]]"

@@ -2,7 +2,7 @@ import { useMemo, useState, useCallback } from 'react'
 import type { VaultEntry } from '../types'
 import type { FrontmatterValue } from './Inspector'
 import type { ParsedFrontmatter } from '../utils/frontmatter'
-import { EditableValue, EditableList } from './EditableValue'
+import { EditableValue, TagPillList } from './EditableValue'
 import { Button } from '@/components/ui/button'
 import { getTypeColor, getTypeLightColor } from '../utils/typeColors'
 
@@ -165,7 +165,7 @@ export function DynamicPropertiesPanel({
     }
 
     if (Array.isArray(value)) {
-      return <EditableList items={value.map(String)} onSave={(items) => handleSaveList(key, items)} label={key} />
+      return <TagPillList items={value.map(String)} onSave={(items) => handleSaveList(key, items)} label={key} />
     }
 
     if (key.includes('Created') || key.includes('Modified') || key.includes('time') || key.includes('Date')) {

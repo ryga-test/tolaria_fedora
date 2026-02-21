@@ -29,6 +29,7 @@ is_a: Project
 Status: Active
 Owner: Luca Rossi
 Cadence: Weekly
+tags: [React, TypeScript, Tauri]
 Belongs to:
   - "[[responsibility/grow-newsletter]]"
 Related to:
