@@ -11,6 +11,7 @@ const TYPE_COLOR_MAP: Record<string, string> = {
   Person: 'var(--accent-yellow)',
   Event: 'var(--accent-yellow)',
   Topic: 'var(--accent-green)',
+  Type: 'var(--accent-blue)',
 }
 
 const TYPE_LIGHT_COLOR_MAP: Record<string, string> = {
@@ -21,6 +22,7 @@ const TYPE_LIGHT_COLOR_MAP: Record<string, string> = {
   Person: 'var(--accent-yellow-light)',
   Event: 'var(--accent-yellow-light)',
   Topic: 'var(--accent-green-light)',
+  Type: 'var(--accent-blue-light)',
 }
 
 const DEFAULT_COLOR = 'var(--accent-blue)'

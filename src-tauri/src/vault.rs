@@ -257,6 +257,7 @@ fn infer_type_from_folder(folder: &str) -> String {
         "event" => "Event",
         "topic" => "Topic",
         "experiment" => "Experiment",
+        "type" => "Type",
         "note" => "Note",
         "quarter" => "Quarter",
         "measure" => "Measure",
@@ -319,13 +320,27 @@ pub fn parse_md_file(path: &Path) -> Result<VaultEntry, String> {
 
     let matter = Matter::<YAML>::new();
     let parsed = matter.parse(&content);
-    let (frontmatter, relationships) = extract_fm_and_rels(parsed.data);
+    let (frontmatter, mut relationships) = extract_fm_and_rels(parsed.data);
 
     let title = extract_title(&parsed.content, &filename);
     let snippet = extract_snippet(&content);
     let (modified_at, file_size) = read_file_metadata(path)?;
     let created_at = parse_created_at(&frontmatter);
     let is_a = resolve_is_a(frontmatter.is_a, path);
+
+    // Add "Type" relationship: isA becomes a navigable link to the type document.
+    // Skip for type documents themselves (isA == "Type") to avoid self-referential links.
+    if let Some(ref type_name) = is_a {
+        if type_name != "Type" {
+            // If isA is already a wikilink (e.g. "[[type/project]]"), use it directly
+            let type_link = if type_name.starts_with("[[") && type_name.ends_with("]]") {
+                type_name.clone()
+            } else {
+                format!("[[type/{}]]", type_name.to_lowercase())
+            };
+            relationships.insert("Type".to_string(), vec![type_link]);
+        }
+    }
 
     Ok(VaultEntry {
         path: path.to_string_lossy().to_string(),
@@ -897,7 +912,7 @@ Status: Active
         create_test_file(dir.path(), "publish-essays.md", content);
 
         let entry = parse_md_file(&dir.path().join("publish-essays.md")).unwrap();
-        assert_eq!(entry.relationships.len(), 2);
+        assert_eq!(entry.relationships.len(), 3); // Has, Topics, Type
         assert_eq!(
             entry.relationships.get("Has").unwrap(),
             &vec!["[[essay/foo|Foo Essay]]".to_string(), "[[essay/bar|Bar Essay]]".to_string()]
@@ -905,6 +920,10 @@ Status: Active
         assert_eq!(
             entry.relationships.get("Topics").unwrap(),
             &vec!["[[topic/rust]]".to_string(), "[[topic/wasm]]".to_string()]
+        );
+        assert_eq!(
+            entry.relationships.get("Type").unwrap(),
+            &vec!["[[type/responsibility]]".to_string()]
         );
     }
 
@@ -952,8 +971,12 @@ Custom Field: just a plain string
         create_test_file(dir.path(), "plain-note.md", content);
 
         let entry = parse_md_file(&dir.path().join("plain-note.md")).unwrap();
-        // Tags and Custom Field don't contain wikilinks, so relationships should be empty
-        assert!(entry.relationships.is_empty());
+        // Tags and Custom Field don't contain wikilinks — only the auto-generated "Type" relationship
+        assert_eq!(entry.relationships.len(), 1);
+        assert_eq!(
+            entry.relationships.get("Type").unwrap(),
+            &vec!["[[type/note]]".to_string()]
+        );
     }
 
     const BIG_PROJECT_CONTENT: &str = "---\nIs A: Project\nHas:\n  - \"[[deliverable/mvp]]\"\n  - \"[[deliverable/v2]]\"\nTopics:\n  - \"[[topic/ai]]\"\n  - \"[[topic/compilers]]\"\nEvents:\n  - \"[[event/launch-day]]\"\nNotes:\n  - \"[[note/design-rationale]]\"\n  - \"[[note/meeting-2024-01]]\"\n  - \"[[note/meeting-2024-02]]\"\nOwner: \"[[person/alice]]\"\nRelated to:\n  - \"[[project/sibling-project]]\"\nBelongs to:\n  - \"[[area/engineering]]\"\nStatus: Active\n---\n# Big Project\n";
@@ -1056,7 +1079,12 @@ Context: "[[area/research]]"
     fn test_skip_keys_real_relation_included() {
         let (rels, len) = parse_skip_keys_rels();
         assert_eq!(rels.get("Real Relation").unwrap(), &vec!["[[note/important]]".to_string()]);
-        assert_eq!(len, 1);
+        // "Real Relation" + auto-generated "Type" (from is_a: "[[type/project]]")
+        assert_eq!(len, 2);
+        assert_eq!(
+            rels.get("Type").unwrap(),
+            &vec!["[[type/project]]".to_string()]
+        );
     }
 
     #[test]
@@ -1388,6 +1416,58 @@ References:
 
         let entry = parse_md_file(&dir.path().join("test.md")).unwrap();
         assert_eq!(entry.created_at, Some(1747958400));
+    }
+
+    // --- Type relationship tests ---
+
+    #[test]
+    fn test_type_relationship_added_for_regular_entries() {
+        let dir = TempDir::new().unwrap();
+        let content = "---\nIs A: Project\n---\n# My Project\n";
+        let entry = parse_test_entry(&dir, "project/my-project.md", content);
+        assert_eq!(
+            entry.relationships.get("Type").unwrap(),
+            &vec!["[[type/project]]".to_string()]
+        );
+    }
+
+    #[test]
+    fn test_type_relationship_skipped_for_type_documents() {
+        let dir = TempDir::new().unwrap();
+        let content = "---\nIs A: Type\n---\n# Project\n";
+        let entry = parse_test_entry(&dir, "type/project.md", content);
+        assert!(entry.relationships.get("Type").is_none());
+    }
+
+    #[test]
+    fn test_type_relationship_from_folder_inference() {
+        let dir = TempDir::new().unwrap();
+        let content = "# A Person\n\nSome content.";
+        let entry = parse_test_entry(&dir, "person/someone.md", content);
+        assert_eq!(entry.is_a, Some("Person".to_string()));
+        assert_eq!(
+            entry.relationships.get("Type").unwrap(),
+            &vec!["[[type/person]]".to_string()]
+        );
+    }
+
+    #[test]
+    fn test_type_relationship_handles_wikilink_is_a() {
+        let dir = TempDir::new().unwrap();
+        let content = "---\nIs A: \"[[type/experiment]]\"\n---\n# Test\n";
+        let entry = parse_test_entry(&dir, "test.md", content);
+        assert_eq!(
+            entry.relationships.get("Type").unwrap(),
+            &vec!["[[type/experiment]]".to_string()]
+        );
+    }
+
+    #[test]
+    fn test_type_folder_inferred_as_type() {
+        let dir = TempDir::new().unwrap();
+        let content = "# Some Type\n";
+        let entry = parse_test_entry(&dir, "type/some-type.md", content);
+        assert_eq!(entry.is_a, Some("Type".to_string()));
     }
 
     // Frontmatter update/delete tests are in frontmatter.rs

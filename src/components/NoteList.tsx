@@ -1,11 +1,11 @@
 import { useState, useMemo, useCallback, memo } from 'react'
-import { Virtuoso } from 'react-virtuoso'
+// Virtuoso removed — flat list rendering used instead
 import type { VaultEntry, SidebarSelection, ModifiedFile } from '../types'
 import { cn } from '@/lib/utils'
 import { Input } from '@/components/ui/input'
 import {
   MagnifyingGlass, Plus, Wrench, Flask, Target, ArrowsClockwise,
-  Users, CalendarBlank, Tag, FileText, CaretDown, CaretRight,
+  Users, CalendarBlank, Tag, FileText, CaretDown, CaretRight, StackSimple,
 } from '@phosphor-icons/react'
 import type { ComponentType, SVGAttributes } from 'react'
 import { getTypeColor, getTypeLightColor } from '../utils/typeColors'
@@ -18,6 +18,7 @@ const TYPE_ICON_MAP: Record<string, ComponentType<SVGAttributes<SVGSVGElement>>>
   Person: Users,
   Event: CalendarBlank,
   Topic: Tag,
+  Type: StackSimple,
 }
 
 function getTypeIcon(isA: string | null): ComponentType<SVGAttributes<SVGSVGElement>> {
@@ -131,6 +132,14 @@ function buildRelationshipGroups(
   const seen = new Set<string>([entity.path])
   const rels = entity.relationships ?? {}
 
+  // 0. "Instances" — for type documents, show all entries of this type
+  if (entity.isA === 'Type') {
+    const instances = allEntries
+      .filter((e) => e.isA === entity.title && !seen.has(e.path))
+      .sort(sortByModified)
+    addGroup(groups, 'Instances', instances, seen)
+  }
+
   // 1. "Has" — from the entity's own relationships map
   const hasRefs = rels['Has'] ?? []
   if (hasRefs.length > 0) {
@@ -163,7 +172,7 @@ function buildRelationshipGroups(
   // 5. All other generic relationship fields (alphabetically)
   const handledKeys = new Set(['Has', 'Topics'])
   const otherKeys = Object.keys(rels)
-    .filter((k) => !handledKeys.has(k))
+    .filter((k) => !handledKeys.has(k) && k.toLowerCase() !== 'type')
     .sort((a, b) => a.localeCompare(b))
   for (const key of otherKeys) {
     const refs = rels[key]
@@ -214,6 +223,7 @@ function NoteListInner({ entries, selection, selectedNote, allContent, modifiedF
   const [collapsedGroups, setCollapsedGroups] = useState<Set<string>>(new Set())
 
   const isEntityView = selection.kind === 'entity'
+  const isSectionGroup = selection.kind === 'sectionGroup'
 
   const toggleGroup = useCallback((label: string) => {
     setCollapsedGroups((prev) => {
@@ -223,6 +233,13 @@ function NoteListInner({ entries, selection, selectedNote, allContent, modifiedF
       return next
     })
   }, [])
+
+  // Find the type document for this section group (e.g., type/project.md for "Project")
+  const typeDocument = useMemo(() => {
+    if (!isSectionGroup) return null
+    const typeName = (selection as { kind: 'sectionGroup'; type: string }).type
+    return entries.find((e) => e.isA === 'Type' && e.title === typeName) ?? null
+  }, [isSectionGroup, selection, entries])
 
   const entityGroups = useMemo(
     () => isEntityView ? buildRelationshipGroups(selection.entry, entries, allContent) : [],
@@ -261,8 +278,8 @@ function NoteListInner({ entries, selection, selectedNote, allContent, modifiedF
 
   const renderItem = useCallback((entry: VaultEntry, isPinned = false) => {
     const isSelected = selectedNote?.path === entry.path && !isPinned
-    const typeColor = getTypeColor(entry.isA)
-    const typeLightColor = getTypeLightColor(entry.isA)
+    const typeColor = getTypeColor(entry.isA ?? '')
+    const typeLightColor = getTypeLightColor(entry.isA ?? '')
     const TypeIcon = getTypeIcon(entry.isA)
     return (
       <div
@@ -307,12 +324,77 @@ function NoteListInner({ entries, selection, selectedNote, allContent, modifiedF
     )
   }, [selectedNote?.path, onSelectNote])
 
+  const renderPinnedView = useCallback((entity: VaultEntry, groups: RelationshipGroup[]) => {
+    const entityTypeColor = getTypeColor(entity.isA ?? '')
+    const entityLightColor = getTypeLightColor(entity.isA ?? '')
+    const EntityIcon = getTypeIcon(entity.isA)
+    return (
+      <div className="h-full overflow-y-auto">
+        {/* Prominent card */}
+        <div
+          className="relative cursor-pointer border-b border-[var(--border)]"
+          style={{ backgroundColor: entityLightColor, padding: '14px 16px' }}
+          onClick={() => onSelectNote(entity)}
+        >
+          <EntityIcon
+            width={16}
+            height={16}
+            className="absolute right-3 top-3.5"
+            style={{ color: entityTypeColor }}
+            data-testid="type-icon"
+          />
+          <div className="pr-6 text-[14px] font-bold" style={{ color: entityTypeColor }}>
+            {entity.title}
+          </div>
+          <div className="mt-1 text-[12px] leading-[1.5] opacity-80" style={{ color: entityTypeColor, display: '-webkit-box', WebkitLineClamp: 2, WebkitBoxOrient: 'vertical', overflow: 'hidden' }}>
+            {entity.snippet}
+          </div>
+          <div className="mt-1 text-[11px] opacity-60" style={{ color: entityTypeColor }}>
+            {relativeDate(getDisplayDate(entity))}
+          </div>
+        </div>
+
+        {/* Relationship groups */}
+        {groups.length === 0 ? (
+          <div className="px-4 py-8 text-center text-[13px] text-muted-foreground">
+            {query ? 'No matching items' : 'No related items'}
+          </div>
+        ) : (
+          groups.map((group) => {
+            const isGroupCollapsed = collapsedGroups.has(group.label)
+            return (
+              <div key={group.label}>
+                <button
+                  className="flex w-full items-center justify-between border-none bg-muted cursor-pointer"
+                  style={{ height: 32, padding: '0 16px' }}
+                  onClick={() => toggleGroup(group.label)}
+                >
+                  <span className="flex items-center gap-1.5">
+                    <span className="font-mono-label text-muted-foreground">
+                      {group.label}
+                    </span>
+                    <span className="font-mono-label text-muted-foreground" style={{ fontWeight: 400 }}>{group.entries.length}</span>
+                  </span>
+                  {isGroupCollapsed
+                    ? <CaretRight size={12} className="text-muted-foreground" />
+                    : <CaretDown size={12} className="text-muted-foreground" />
+                  }
+                </button>
+                {!isGroupCollapsed && group.entries.map((groupEntry) => renderItem(groupEntry))}
+              </div>
+            )
+          })
+        )}
+      </div>
+    )
+  }, [onSelectNote, query, collapsedGroups, toggleGroup, renderItem])
+
   return (
     <div className="flex flex-col overflow-hidden border-r border-border bg-card text-foreground" style={{ height: '100%' }}>
       {/* Header */}
       <div className="flex h-[45px] shrink-0 items-center justify-between border-b border-border px-4" data-tauri-drag-region style={{ WebkitAppRegion: 'drag' } as React.CSSProperties}>
         <h3 className="m-0 min-w-0 flex-1 truncate text-[14px] font-semibold">
-          {isEntityView ? selection.entry.title : 'Notes'}
+          {isEntityView ? selection.entry.title : (typeDocument ? typeDocument.title : 'Notes')}
         </h3>
         <div className="flex items-center gap-3" style={{ WebkitAppRegion: 'no-drag' } as React.CSSProperties}>
           <button
@@ -349,82 +431,42 @@ function NoteListInner({ entries, selection, selectedNote, allContent, modifiedF
       <div className="flex-1 overflow-hidden" style={{ minHeight: 0 }}>
         {isEntityView ? (() => {
           const entity = selection.entry
-          const entityTypeColor = getTypeColor(entity.isA)
-          const entityLightColor = getTypeLightColor(entity.isA)
-          const EntityIcon = getTypeIcon(entity.isA)
-          return (
-            <div className="h-full overflow-y-auto">
-              {/* Prominent card */}
-              <div
-                className="relative cursor-pointer border-b border-[var(--border)]"
-                style={{ backgroundColor: entityLightColor, padding: '14px 16px' }}
-                onClick={() => onSelectNote(entity)}
-              >
-                <EntityIcon
-                  width={16}
-                  height={16}
-                  className="absolute right-3 top-3.5"
-                  style={{ color: entityTypeColor }}
-                  data-testid="type-icon"
-                />
-                <div className="pr-6 text-[14px] font-bold" style={{ color: entityTypeColor }}>
-                  {entity.title}
-                </div>
-                <div className="mt-1 text-[12px] leading-[1.5] opacity-80" style={{ color: entityTypeColor, display: '-webkit-box', WebkitLineClamp: 2, WebkitBoxOrient: 'vertical', overflow: 'hidden' }}>
-                  {entity.snippet}
-                </div>
-                <div className="mt-1 text-[11px] opacity-60" style={{ color: entityTypeColor }}>
-                  {relativeDate(getDisplayDate(entity))}
-                </div>
-              </div>
-
-              {/* Relationship groups */}
-              {searchedGroups.length === 0 ? (
-                <div className="px-4 py-8 text-center text-[13px] text-muted-foreground">
-                  {query ? 'No matching items' : 'No related items'}
-                </div>
-              ) : (
-                searchedGroups.map((group) => {
-                  const isCollapsed = collapsedGroups.has(group.label)
-                  return (
-                    <div key={group.label}>
-                      <button
-                        className="flex w-full items-center justify-between border-none bg-muted cursor-pointer"
-                        style={{ height: 32, padding: '0 16px' }}
-                        onClick={() => toggleGroup(group.label)}
-                      >
-                        <span className="flex items-center gap-1.5">
-                          <span className="font-mono-label text-muted-foreground">
-                            {group.label}
-                          </span>
-                          <span className="font-mono-label text-muted-foreground" style={{ fontWeight: 400 }}>{group.entries.length}</span>
-                        </span>
-                        {isCollapsed
-                          ? <CaretRight size={12} className="text-muted-foreground" />
-                          : <CaretDown size={12} className="text-muted-foreground" />
-                        }
-                      </button>
-                      {!isCollapsed && group.entries.map((entry) => renderItem(entry))}
-                    </div>
-                  )
-                })
-              )}
-            </div>
-          )
+          return renderPinnedView(entity, searchedGroups)
         })() : (
-          searched.length === 0 ? (
-            <div className="px-4 py-8 text-center text-[13px] text-muted-foreground">No notes found</div>
-          ) : (
-            <Virtuoso
-              style={{ height: '100%' }}
-              totalCount={searched.length}
-              initialItemCount={Math.min(searched.length, 30)}
-              itemContent={(index) => {
-                const entry = searched[index]
-                return entry ? renderItem(entry) : null
-              }}
-            />
-          )
+          <div className="h-full overflow-y-auto">
+            {/* Type document pinned card (for sectionGroup view) */}
+            {typeDocument && (() => {
+              const tdColor = getTypeColor(typeDocument.isA ?? 'Type')
+              const tdLightColor = getTypeLightColor(typeDocument.isA ?? 'Type')
+              const TDIcon = getTypeIcon(typeDocument.isA)
+              return (
+                <div
+                  className="relative cursor-pointer border-b border-[var(--border)]"
+                  style={{ backgroundColor: tdLightColor, padding: '14px 16px' }}
+                  onClick={() => onSelectNote(typeDocument)}
+                >
+                  <TDIcon
+                    width={16}
+                    height={16}
+                    className="absolute right-3 top-3.5"
+                    style={{ color: tdColor }}
+                    data-testid="type-icon"
+                  />
+                  <div className="pr-6 text-[14px] font-bold" style={{ color: tdColor }}>
+                    {typeDocument.title}
+                  </div>
+                  <div className="mt-1 text-[12px] leading-[1.5] opacity-80" style={{ color: tdColor, display: '-webkit-box', WebkitLineClamp: 2, WebkitBoxOrient: 'vertical', overflow: 'hidden' }}>
+                    {typeDocument.snippet}
+                  </div>
+                </div>
+              )
+            })()}
+            {searched.length === 0 ? (
+              <div className="px-4 py-8 text-center text-[13px] text-muted-foreground">No notes found</div>
+            ) : (
+              searched.map((entry) => renderItem(entry))
+            )}
+          </div>
         )}
       </div>
     </div>

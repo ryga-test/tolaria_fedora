@@ -15,6 +15,7 @@ import {
   Tag,
   TagSimple,
   Trash,
+  StackSimple,
   type IconProps,
 } from '@phosphor-icons/react'
 
@@ -40,6 +41,7 @@ const SECTION_GROUPS: { label: string; type: string; Icon: ComponentType<IconPro
   { label: 'People', type: 'Person', Icon: Users },
   { label: 'Events', type: 'Event', Icon: CalendarBlank },
   { label: 'Topics', type: 'Topic', Icon: Tag },
+  { label: 'Types', type: 'Type', Icon: StackSimple },
 ]
 
 export const Sidebar = memo(function Sidebar({ entries, selection, onSelect, onSelectNote, modifiedCount = 0, onCommitPush }: SidebarProps) {
@@ -48,7 +50,7 @@ export const Sidebar = memo(function Sidebar({ entries, selection, onSelect, onS
     setCollapsed((prev) => ({ ...prev, [type]: !prev[type] }))
   }
 
-  const getSectionColor = (entry: VaultEntry) => getTypeColor(entry.isA)
+  const getSectionColor = (entry: VaultEntry) => getTypeColor(entry.isA ?? '')
 
   const isActive = (sel: SidebarSelection): boolean => {
     if (selection.kind !== sel.kind) return false
@@ -165,7 +167,7 @@ export const Sidebar = memo(function Sidebar({ entries, selection, onSelect, onS
                       style={{
                         padding: '4px 16px 4px 28px',
                         ...(isActive(isTopic ? { kind: 'topic', entry } : { kind: 'entity', entry }) && {
-                          backgroundColor: getTypeLightColor(entry.isA),
+                          backgroundColor: getTypeLightColor(entry.isA ?? ''),
                           color: getSectionColor(entry),
                         }),
                       }}

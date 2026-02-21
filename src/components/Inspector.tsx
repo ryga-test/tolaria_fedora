@@ -4,7 +4,7 @@ import type { VaultEntry, GitCommit } from '../types'
 import { cn } from '@/lib/utils'
 import {
   SlidersHorizontal, X, Wrench, Flask, Target, ArrowsClockwise,
-  Users, CalendarBlank, Tag, FileText,
+  Users, CalendarBlank, Tag, FileText, StackSimple,
 } from '@phosphor-icons/react'
 import { parseFrontmatter, type ParsedFrontmatter } from '../utils/frontmatter'
 import { DynamicPropertiesPanel, RELATIONSHIP_KEYS, containsWikilinks } from './DynamicPropertiesPanel'
@@ -18,6 +18,7 @@ const TYPE_ICON_MAP: Record<string, ComponentType<SVGAttributes<SVGSVGElement>>>
   Person: Users,
   Event: CalendarBlank,
   Topic: Tag,
+  Type: StackSimple,
 }
 
 function getTypeIcon(isA: string | undefined): ComponentType<SVGAttributes<SVGSVGElement>> {
@@ -70,7 +71,7 @@ function resolveRefType(ref: string, entries: VaultEntry[]): string | undefined 
     if (fileStem === target.split('/').pop()) return true
     return false
   })
-  return match?.isA
+  return match?.isA ?? undefined
 }
 
 function RelationshipGroup({ label, refs, entries, onNavigate }: { label: string; refs: string[]; entries: VaultEntry[]; onNavigate: (target: string) => void }) {
@@ -104,7 +105,7 @@ function RelationshipGroup({ label, refs, entries, onNavigate }: { label: string
 function DynamicRelationshipsPanel({ frontmatter, entries, onNavigate }: { frontmatter: ParsedFrontmatter; entries: VaultEntry[]; onNavigate: (target: string) => void }) {
   const relationshipEntries = useMemo(() => {
     return Object.entries(frontmatter)
-      .filter(([key, value]) => RELATIONSHIP_KEYS.has(key) || containsWikilinks(value))
+      .filter(([key, value]) => key !== 'Type' && (RELATIONSHIP_KEYS.has(key) || containsWikilinks(value)))
       .map(([key, value]) => {
         const refs: string[] = []
         if (typeof value === 'string' && isWikilink(value)) refs.push(value)
@@ -297,6 +298,7 @@ export function Inspector({
                 onUpdateProperty={onUpdateFrontmatter ? handleUpdateProperty : undefined}
                 onDeleteProperty={onDeleteProperty ? handleDeleteProperty : undefined}
                 onAddProperty={onAddProperty ? handleAddProperty : undefined}
+                onNavigate={onNavigate}
               />
               <DynamicRelationshipsPanel frontmatter={frontmatter} entries={entries} onNavigate={onNavigate} />
               <BacklinksPanel backlinks={backlinks} onNavigate={onNavigate} />
