@@ -20,6 +20,7 @@ const TYPE_ICON_MAP: Record<string, ComponentType<SVGAttributes<SVGSVGElement>>>
   Type: StackSimple,
 }
 
+// eslint-disable-next-line react-refresh/only-export-components -- utility co-located with component
 export function getTypeIcon(isA: string | null, customIcon?: string | null): ComponentType<SVGAttributes<SVGSVGElement>> {
   if (customIcon) return resolveIcon(customIcon)
   return (isA && TYPE_ICON_MAP[isA]) || FileText

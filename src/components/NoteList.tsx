@@ -15,7 +15,7 @@ import {
   loadSortPreferences, saveSortPreferences,
 } from '../utils/noteListHelpers'
 
-// Re-export for consumers
+// eslint-disable-next-line react-refresh/only-export-components -- re-exports for consumers
 export { sortByModified, filterEntries, buildRelationshipGroups, getSortComparator }
 export type { SortOption }
 
