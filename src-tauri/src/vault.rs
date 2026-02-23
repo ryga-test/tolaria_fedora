@@ -50,12 +50,8 @@ pub struct VaultEntry {
 /// Intermediate struct to capture YAML frontmatter fields.
 #[derive(Debug, Deserialize, Default)]
 struct Frontmatter {
-    /// Legacy "Is A" / "is_a" field — migrated to `type` in new notes.
-    #[serde(rename = "Is A", alias = "is_a")]
+    #[serde(rename = "Is A")]
     is_a: Option<StringOrList>,
-    /// New canonical "type" field (preferred over is_a).
-    #[serde(default, rename = "type")]
-    type_field: Option<StringOrList>,
     #[serde(default)]
     aliases: Option<StringOrList>,
     #[serde(rename = "Belongs to")]
@@ -119,48 +115,45 @@ fn extract_title(content: &str, filename: &str) -> String {
     filename.strip_suffix(".md").unwrap_or(filename).to_string()
 }
 
+/// Remove YAML frontmatter (triple-dash delimited) from content.
+fn strip_frontmatter(content: &str) -> &str {
+    let Some(rest) = content.strip_prefix("---") else {
+        return content;
+    };
+    match rest.find("---") {
+        Some(end) => rest[end + 3..].trim_start(),
+        None => content,
+    }
+}
+
+/// Check if a line is useful for snippet extraction (not blank, heading, code fence, or rule).
+fn is_snippet_line(line: &str) -> bool {
+    let t = line.trim();
+    !t.is_empty() && !t.starts_with('#') && !t.starts_with("```") && !t.starts_with("---")
+}
+
+/// Truncate a string to `max_len` bytes at a valid UTF-8 boundary, appending "...".
+fn truncate_with_ellipsis(s: &str, max_len: usize) -> String {
+    if s.len() <= max_len {
+        return s.to_string();
+    }
+    let mut idx = max_len;
+    while idx > 0 && !s.is_char_boundary(idx) {
+        idx -= 1;
+    }
+    format!("{}...", &s[..idx])
+}
+
 /// Extract a snippet: first ~160 chars of content after frontmatter/title, stripped of markdown.
 fn extract_snippet(content: &str) -> String {
-    // Remove frontmatter
-    let without_fm = if let Some(rest) = content.strip_prefix("---") {
-        if let Some(end) = rest.find("---") {
-            rest[end + 3..].trim_start()
-        } else {
-            content
-        }
-    } else {
-        content
-    };
-
-    // Skip the first H1 heading line
-    let without_h1 = if let Some(rest) = without_h1_line(without_fm) {
-        rest
-    } else {
-        without_fm
-    };
-
-    // Strip markdown formatting and collapse whitespace
-    let clean: String = without_h1
+    let without_fm = strip_frontmatter(content);
+    let body = without_h1_line(without_fm).unwrap_or(without_fm);
+    let clean: String = body
         .lines()
-        .filter(|line| {
-            let t = line.trim();
-            // Skip blank lines, headings, code fences, horizontal rules
-            !t.is_empty() && !t.starts_with('#') && !t.starts_with("```") && !t.starts_with("---")
-        })
+        .filter(|line| is_snippet_line(line))
         .collect::<Vec<&str>>()
         .join(" ");
-
-    let stripped = strip_markdown_chars(&clean);
-    if stripped.len() > 160 {
-        // Find last valid char boundary at or before 160 (floor_char_boundary requires Rust 1.91)
-        let mut idx = 160;
-        while idx > 0 && !stripped.is_char_boundary(idx) {
-            idx -= 1;
-        }
-        format!("{}...", &stripped[..idx])
-    } else {
-        stripped
-    }
+    truncate_with_ellipsis(&strip_markdown_chars(&clean), 160)
 }
 
 fn without_h1_line(s: &str) -> Option<&str> {
@@ -236,8 +229,6 @@ fn parse_frontmatter(data: &HashMap<String, serde_json::Value>) -> Frontmatter {
 /// Only skip keys that can never contain wikilinks.
 const SKIP_KEYS: &[&str] = &[
     "is a",
-    "is_a",
-    "type",
     "aliases",
     "status",
     "cadence",
@@ -319,14 +310,9 @@ fn infer_type_from_folder(folder: &str) -> String {
     .to_string()
 }
 
-/// Resolve note type: prefer `type` field, fall back to `is_a`, then parent folder inference.
-fn resolve_type(
-    type_field: Option<StringOrList>,
-    is_a: Option<StringOrList>,
-    path: &Path,
-) -> Option<String> {
-    type_field
-        .or(is_a)
+/// Resolve `is_a` from frontmatter, falling back to parent folder inference.
+fn resolve_is_a(fm_is_a: Option<StringOrList>, path: &Path) -> Option<String> {
+    fm_is_a
         .and_then(|a| a.into_vec().into_iter().next())
         .or_else(|| {
             path.parent()
@@ -388,7 +374,7 @@ pub fn parse_md_file(path: &Path) -> Result<VaultEntry, String> {
     let snippet = extract_snippet(&content);
     let (modified_at, file_size) = read_file_metadata(path)?;
     let created_at = parse_created_at(&frontmatter);
-    let is_a = resolve_type(frontmatter.type_field, frontmatter.is_a, path);
+    let is_a = resolve_is_a(frontmatter.is_a, path);
 
     // Add "Type" relationship: isA becomes a navigable link to the type document.
     // Skip for type documents themselves (isA == "Type") to avoid self-referential links.
@@ -491,126 +477,50 @@ fn pod_to_json(pod: gray_matter::Pod) -> serde_json::Value {
     }
 }
 
-/// Check if a frontmatter section contains legacy `is_a` or `Is A` keys.
-fn has_legacy_is_a(fm_content: &str) -> bool {
-    fm_content.lines().any(|line| {
-        let t = line.trim_start();
-        t.starts_with("is_a:")
-            || t.starts_with("\"Is A\":")
-            || t.starts_with("'Is A':")
-            || t.starts_with("Is A:")
-    })
+/// Check if a file path points to a markdown file.
+fn is_markdown_file(path: &Path) -> bool {
+    path.is_file() && path.extension().is_some_and(|ext| ext == "md")
 }
 
-/// Extract the value from a legacy `is_a` / `Is A` line.
-fn extract_is_a_value(line: &str) -> Option<&str> {
-    let t = line.trim_start();
-    for prefix in &["is_a:", "\"Is A\":", "'Is A':", "Is A:"] {
-        if let Some(rest) = t.strip_prefix(prefix) {
-            let v = rest.trim();
-            return Some(v);
-        }
-    }
-    None
-}
-
-/// Migrate a single file's frontmatter from `is_a`/`Is A` to `type`.
-/// Returns Ok(true) if the file was modified, Ok(false) if no migration needed.
-fn migrate_file_is_a_to_type(path: &Path) -> Result<bool, String> {
-    let content = fs::read_to_string(path)
-        .map_err(|e| format!("Failed to read {}: {}", path.display(), e))?;
-
-    if !content.starts_with("---\n") {
-        return Ok(false);
-    }
-    let fm_end = match content[4..].find("\n---") {
-        Some(i) => i + 4,
-        None => return Ok(false),
+/// Extract the "Trashed at" date string from parsed gray_matter data.
+fn extract_trashed_at_string(data: &Option<gray_matter::Pod>) -> Option<String> {
+    let gray_matter::Pod::Hash(ref map) = data.as_ref()? else {
+        return None;
     };
-    let fm_content = &content[4..fm_end];
-
-    if !has_legacy_is_a(fm_content) {
-        return Ok(false);
+    let pod = map
+        .get("Trashed at")
+        .or_else(|| map.get("trashed_at"))?;
+    match pod {
+        gray_matter::Pod::String(s) => Some(s.clone()),
+        _ => None,
     }
-
-    // Check if `type:` already exists
-    let has_type = fm_content.lines().any(|line| {
-        let t = line.trim_start();
-        t.starts_with("type:")
-    });
-
-    let mut new_lines: Vec<String> = Vec::new();
-    let mut is_a_value: Option<String> = None;
-
-    for line in fm_content.lines() {
-        if let Some(val) = extract_is_a_value(line) {
-            is_a_value = Some(val.to_string());
-            // Skip list continuations after is_a
-            continue;
-        }
-        new_lines.push(line.to_string());
-    }
-
-    // If type: doesn't exist and we found an is_a value, add type:
-    if !has_type {
-        if let Some(ref val) = is_a_value {
-            // Insert type: at the beginning (after other keys is fine too, but beginning is clean)
-            new_lines.insert(0, format!("type: {}", val));
-        }
-    }
-
-    let rest = &content[fm_end + 4..];
-    let new_content = format!("---\n{}\n---{}", new_lines.join("\n"), rest);
-
-    fs::write(path, &new_content)
-        .map_err(|e| format!("Failed to write {}: {}", path.display(), e))?;
-
-    Ok(true)
 }
 
-/// Migrate all markdown files in the vault from `is_a`/`Is A` to `type`.
-/// Returns the number of files migrated.
-pub fn migrate_is_a_to_type(vault_path: &str) -> Result<usize, String> {
-    let vault = Path::new(vault_path);
-    if !vault.exists() || !vault.is_dir() {
-        return Err(format!(
-            "Vault path does not exist or is not a directory: {}",
-            vault_path
-        ));
-    }
+/// Parse a "Trashed at" date string into a NaiveDate. Supports "2026-01-01" and "2026-01-01T..." formats.
+fn parse_trashed_date(date_str: &str) -> Option<chrono::NaiveDate> {
+    let trimmed = date_str.trim().trim_matches('"');
+    let date_part = trimmed.split('T').next().unwrap_or(trimmed);
+    chrono::NaiveDate::parse_from_str(date_part, "%Y-%m-%d").ok()
+}
 
-    let mut migrated = 0;
-    for entry in WalkDir::new(vault)
-        .follow_links(true)
-        .into_iter()
-        .filter_map(|e| e.ok())
-    {
-        let path = entry.path();
-        if !path.is_file() || path.extension().map(|ext| ext != "md").unwrap_or(true) {
-            continue;
+/// Delete a file and log the result. Returns the path string if successful.
+fn try_purge_file(path: &Path) -> Option<String> {
+    match fs::remove_file(path) {
+        Ok(()) => {
+            log::info!("Purged trashed file: {}", path.display());
+            Some(path.to_string_lossy().to_string())
         }
-
-        match migrate_file_is_a_to_type(path) {
-            Ok(true) => {
-                log::info!("Migrated is_a → type: {}", path.display());
-                migrated += 1;
-            }
-            Ok(false) => {}
-            Err(e) => {
-                log::warn!("Failed to migrate {}: {}", path.display(), e);
-            }
+        Err(e) => {
+            log::warn!("Failed to delete {}: {}", path.display(), e);
+            None
         }
     }
-
-    Ok(migrated)
 }
 
 /// Scan all markdown files in the vault and delete those where
 /// `Trashed at` frontmatter is more than 30 days ago.
 /// Returns the list of deleted file paths.
 pub fn purge_trash(vault_path: &str) -> Result<Vec<String>, String> {
-    use chrono::{NaiveDate, Utc};
-
     let vault = Path::new(vault_path);
     if !vault.exists() || !vault.is_dir() {
         return Err(format!(
@@ -619,57 +529,28 @@ pub fn purge_trash(vault_path: &str) -> Result<Vec<String>, String> {
         ));
     }
 
-    let today = Utc::now().date_naive();
+    let today = chrono::Utc::now().date_naive();
     let matter = Matter::<YAML>::new();
-    let mut deleted = Vec::new();
+    let max_age_days = 30;
 
-    for entry in WalkDir::new(vault)
+    let deleted: Vec<String> = WalkDir::new(vault)
         .follow_links(true)
         .into_iter()
         .filter_map(|e| e.ok())
-    {
-        let path = entry.path();
-        if !path.is_file() || path.extension().map(|ext| ext != "md").unwrap_or(true) {
-            continue;
-        }
-
-        let content = match fs::read_to_string(path) {
-            Ok(c) => c,
-            Err(_) => continue,
-        };
-
-        let parsed = matter.parse(&content);
-        let trashed_at_str = match parsed.data {
-            Some(gray_matter::Pod::Hash(ref map)) => map
-                .get("Trashed at")
-                .or_else(|| map.get("trashed_at"))
-                .and_then(|v| match v {
-                    gray_matter::Pod::String(s) => Some(s.clone()),
-                    _ => None,
-                }),
-            _ => None,
-        };
-
-        if let Some(date_str) = trashed_at_str {
-            let trimmed = date_str.trim().trim_matches('"');
-            // Support both "2026-01-01" and "2026-01-01T..." formats
-            let date_part = trimmed.split('T').next().unwrap_or(trimmed);
-            if let Ok(trashed_date) = NaiveDate::parse_from_str(date_part, "%Y-%m-%d") {
-                let age = today.signed_duration_since(trashed_date);
-                if age.num_days() > 30 {
-                    match fs::remove_file(path) {
-                        Ok(()) => {
-                            log::info!("Purged trashed file: {}", path.display());
-                            deleted.push(path.to_string_lossy().to_string());
-                        }
-                        Err(e) => {
-                            log::warn!("Failed to delete {}: {}", path.display(), e);
-                        }
-                    }
-                }
+        .filter(|e| is_markdown_file(e.path()))
+        .filter_map(|entry| {
+            let content = fs::read_to_string(entry.path()).ok()?;
+            let parsed = matter.parse(&content);
+            let date_str = extract_trashed_at_string(&parsed.data)?;
+            let trashed_date = parse_trashed_date(&date_str)?;
+            let age = today.signed_duration_since(trashed_date);
+            if age.num_days() > max_age_days {
+                try_purge_file(entry.path())
+            } else {
+                None
             }
-        }
-    }
+        })
+        .collect();
 
     Ok(deleted)
 }
@@ -690,7 +571,8 @@ pub fn get_note_content(path: &str) -> Result<String, String> {
 pub fn save_note_content(path: &str, content: &str) -> Result<(), String> {
     let file_path = Path::new(path);
     validate_save_path(file_path, path)?;
-    fs::write(file_path, content).map_err(|e| format!("Failed to save {}: {}", path, e))
+    fs::write(file_path, content)
+        .map_err(|e| format!("Failed to save {}: {}", path, e))
 }
 
 fn validate_save_path(file_path: &Path, display_path: &str) -> Result<(), String> {
@@ -2185,9 +2067,7 @@ References:
     fn test_save_note_content_nonexistent_parent() {
         let result = save_note_content("/nonexistent/parent/dir/file.md", "content");
         assert!(result.is_err());
-        assert!(result
-            .unwrap_err()
-            .contains("Parent directory does not exist"));
+        assert!(result.unwrap_err().contains("Parent directory does not exist"));
     }
 
     #[test]
@@ -2219,8 +2099,7 @@ References:
         let original = "---\nIs A: Project\nStatus: Active\n---\n# My Project\n\nOriginal body.";
         create_test_file(dir.path(), "note.md", original);
 
-        let updated =
-            "---\nIs A: Project\nStatus: Active\n---\n# My Project\n\nUpdated body with changes.";
+        let updated = "---\nIs A: Project\nStatus: Active\n---\n# My Project\n\nUpdated body with changes.";
         save_note_content(file_path.to_str().unwrap(), updated).unwrap();
 
         let saved = fs::read_to_string(&file_path).unwrap();
@@ -2564,128 +2443,5 @@ References:
         let content = fs::read_to_string(&result.new_path).unwrap();
         assert!(content.contains("title: New Name"));
         assert!(content.contains("# New Name"));
-    }
-
-    // --- type field parsing tests ---
-
-    #[test]
-    fn test_parse_type_field() {
-        let dir = TempDir::new().unwrap();
-        let entry = parse_test_entry(
-            &dir,
-            "project/my-project.md",
-            "---\ntype: Project\nStatus: Active\n---\n# My Project\n",
-        );
-        assert_eq!(entry.is_a, Some("Project".to_string()));
-    }
-
-    #[test]
-    fn test_parse_type_field_takes_precedence_over_is_a() {
-        let dir = TempDir::new().unwrap();
-        let entry = parse_test_entry(
-            &dir,
-            "project/conflict.md",
-            "---\ntype: Project\nIs A: Note\n---\n# Conflict\n",
-        );
-        assert_eq!(entry.is_a, Some("Project".to_string()));
-    }
-
-    #[test]
-    fn test_parse_legacy_is_a_still_works() {
-        let dir = TempDir::new().unwrap();
-        let entry = parse_test_entry(
-            &dir,
-            "note/legacy.md",
-            "---\nIs A: Note\nStatus: Active\n---\n# Legacy\n",
-        );
-        assert_eq!(entry.is_a, Some("Note".to_string()));
-    }
-
-    #[test]
-    fn test_parse_snake_case_is_a_still_works() {
-        let dir = TempDir::new().unwrap();
-        let entry = parse_test_entry(
-            &dir,
-            "note/snake.md",
-            "---\nis_a: Note\nStatus: Draft\n---\n# Snake Case\n",
-        );
-        assert_eq!(entry.is_a, Some("Note".to_string()));
-    }
-
-    // --- migration tests ---
-
-    #[test]
-    fn test_migrate_file_is_a_to_type() {
-        let dir = TempDir::new().unwrap();
-        let path = dir.path().join("note.md");
-        fs::write(&path, "---\nis_a: Project\nStatus: Active\n---\n# Note\n").unwrap();
-
-        assert!(migrate_file_is_a_to_type(&path).unwrap());
-        let content = fs::read_to_string(&path).unwrap();
-        assert!(content.contains("type: Project"));
-        assert!(!content.contains("is_a:"));
-    }
-
-    #[test]
-    fn test_migrate_file_quoted_is_a_to_type() {
-        let dir = TempDir::new().unwrap();
-        let path = dir.path().join("note.md");
-        fs::write(&path, "---\n\"Is A\": Type\norder: 1\n---\n# My Type\n").unwrap();
-
-        assert!(migrate_file_is_a_to_type(&path).unwrap());
-        let content = fs::read_to_string(&path).unwrap();
-        assert!(content.contains("type: Type"));
-        assert!(!content.contains("Is A"));
-    }
-
-    #[test]
-    fn test_migrate_file_preserves_existing_type() {
-        let dir = TempDir::new().unwrap();
-        let path = dir.path().join("note.md");
-        fs::write(
-            &path,
-            "---\ntype: Project\nis_a: Note\nStatus: Active\n---\n# Note\n",
-        )
-        .unwrap();
-
-        assert!(migrate_file_is_a_to_type(&path).unwrap());
-        let content = fs::read_to_string(&path).unwrap();
-        assert!(content.contains("type: Project"));
-        assert!(!content.contains("is_a:"));
-    }
-
-    #[test]
-    fn test_migrate_file_no_change_needed() {
-        let dir = TempDir::new().unwrap();
-        let path = dir.path().join("note.md");
-        fs::write(&path, "---\ntype: Project\nStatus: Active\n---\n# Note\n").unwrap();
-
-        assert!(!migrate_file_is_a_to_type(&path).unwrap());
-    }
-
-    #[test]
-    fn test_migrate_vault() {
-        let dir = TempDir::new().unwrap();
-        create_test_file(dir.path(), "note/a.md", "---\nis_a: Note\n---\n# A\n");
-        create_test_file(dir.path(), "project/b.md", "---\ntype: Project\n---\n# B\n");
-        create_test_file(
-            dir.path(),
-            "type/c.md",
-            "---\n\"Is A\": Type\norder: 1\n---\n# C\n",
-        );
-
-        let migrated = migrate_is_a_to_type(dir.path().to_str().unwrap()).unwrap();
-        assert_eq!(migrated, 2); // a.md and c.md
-
-        let a = fs::read_to_string(dir.path().join("note/a.md")).unwrap();
-        assert!(a.contains("type: Note"));
-        assert!(!a.contains("is_a:"));
-
-        let b = fs::read_to_string(dir.path().join("project/b.md")).unwrap();
-        assert!(b.contains("type: Project")); // unchanged
-
-        let c = fs::read_to_string(dir.path().join("type/c.md")).unwrap();
-        assert!(c.contains("type: Type"));
-        assert!(!c.contains("Is A"));
     }
 }
