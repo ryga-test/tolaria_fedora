@@ -8,11 +8,11 @@ date: 2026-03-02
 
 ## Context
 
-Initially, the project used feature branches and PRs. With a single developer (assisted by Claude Code), the PR overhead — branch creation, rebase churn, merge conflicts from long-lived branches — slowed development without adding review value. The pre-commit and pre-push hooks already enforce tests, linting, type checking, and code health gates.
+Initially, the project used feature branches and PRs. With a single developer (assisted by Claude Code), the PR overhead — branch creation, rebase churn, merge conflicts from long-lived branches — slowed development without adding review value. The pre-commit and pre-push hooks already enforce tests, linting, and type checking.
 
 ## Decision
 
-**Push directly to main — no PRs, no feature branches. The pre-push hook runs all quality gates (tests, lint, type check, coverage, CodeScene health). Never use `--no-verify`.**
+**Push directly to main — no PRs, no feature branches. The pre-push hook runs all quality gates (tests, lint, type check, coverage). Never use `--no-verify`.**
 
 ## Options considered
 
@@ -23,7 +23,7 @@ Initially, the project used feature branches and PRs. With a single developer (a
 ## Consequences
 
 - Commit every 20-30 minutes with conventional commit prefixes (`feat:`, `fix:`, `refactor:`, `test:`, `docs:`).
-- Pre-commit hook: vitest + CodeScene health check.
+- Pre-commit hook: vitest.
 - Pre-push hook: same + Playwright smoke tests.
 - No `--no-verify` ever — the hooks are the quality gate.
 - Reverting changes requires `git revert` (not force push).

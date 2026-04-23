@@ -26,6 +26,6 @@ Use **Tauri v2** (Rust backend + WebView frontend) with **React + TypeScript** f
 - React frontend can be shared with a future web version
 - Rust backend provides safe, fast filesystem/git operations
 - Tauri v2 supports iOS (beta) — see ADR-0005 for iPad strategy
-- CodeScene code health monitoring applies to both Rust and TypeScript code
+- Code quality monitoring applies to both Rust and TypeScript code
 - Claude Code can work on both layers without context switching
 - Triggers re-evaluation if: Tauri iOS proves unstable for production, or if SwiftUI becomes the primary target platform

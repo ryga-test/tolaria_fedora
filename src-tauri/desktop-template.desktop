@@ -6,6 +6,6 @@ Comment=Personal knowledge and life management app
 Exec=env WEBKIT_DISABLE_DMABUF_RENDERER=1 tolaria %u
 Icon=club.refactoring.tolaria
 Terminal=false
-Categories=Office;X-Productivity;
+Categories=Office;Productivity;
 MimeType=text/markdown;
 StartupWMClass=Tolaria

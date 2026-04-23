@@ -331,19 +331,18 @@ pub fn run() {
 
 #[cfg(test)]
 mod tests {
-    use super::{
-        MACOS_WEBVIEW_RESERVED_COMMAND_SHIFT_KEYS, WEBKIT_DISABLE_DMABUF_RENDERER_ENV_VAR,
-    };
+    use super::MACOS_WEBVIEW_RESERVED_COMMAND_SHIFT_KEYS;
 
     #[test]
     fn macos_webview_shortcut_prevention_includes_ai_panel_shortcut() {
         assert_eq!(MACOS_WEBVIEW_RESERVED_COMMAND_SHIFT_KEYS, ["L"]);
     }
 
+    #[cfg(target_os = "linux")]
     #[test]
     fn linux_dmabuf_env_var_name_is_correct() {
         assert_eq!(
-            WEBKIT_DISABLE_DMABUF_RENDERER_ENV_VAR,
+            super::WEBKIT_DISABLE_DMABUF_RENDERER_ENV_VAR,
             "WEBKIT_DISABLE_DMABUF_RENDERER"
         );
     }

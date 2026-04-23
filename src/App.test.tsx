@@ -467,9 +467,9 @@ describe('App', () => {
     fireEvent.click(screen.getByTestId(buttonTestId))
 
     await waitFor(() => {
-      expect(screen.getByTestId('welcome-screen')).toBeInTheDocument()
+      expect(screen.getByTestId('sidebar-top-nav')).toBeInTheDocument()
     })
-    expect(screen.getByTestId('welcome-open-folder')).toHaveTextContent('Open existing vault')
+    expect(screen.queryByTestId('welcome-screen')).not.toBeInTheDocument()
   })
 
   it('keeps startup on a neutral loading state while the last vault is still resolving', async () => {

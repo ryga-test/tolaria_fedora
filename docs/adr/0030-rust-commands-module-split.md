@@ -8,7 +8,7 @@ date: 2026-03-30
 
 ## Context
 
-`src-tauri/src/commands.rs` grew to 937 lines as Tauri command handlers accumulated for vault CRUD, git/GitHub sync, AI, system, and window operations. All commands shared a single file with no domain separation, making it hard to navigate, review, and extend. The file was a CodeScene hotspot dragging down overall code health.
+`src-tauri/src/commands.rs` grew to 937 lines as Tauri command handlers accumulated for vault CRUD, git/GitHub sync, AI, system, and window operations. All commands shared a single file with no domain separation, making it hard to navigate, review, and extend.
 
 ## Decision
 
@@ -16,7 +16,7 @@ date: 2026-03-30
 
 ## Options considered
 
-- **Option A** (chosen): Domain-based module split — mirrors the TypeScript `hooks/commands/` pattern (ADR-0029). Each file is independently reviewable and scores well on code health. Downside: more files to navigate.
+- **Option A** (chosen): Domain-based module split — mirrors the TypeScript `hooks/commands/` pattern (ADR-0029). Each file is independently reviewable and easier to reason about. Downside: more files to navigate.
 - **Option B**: Split by platform (`desktop.rs`, `mobile.rs`) — aligns with `#[cfg(...)]` guards but mixes domain concerns. Harder to find a specific command.
 - **Option C**: Keep monolith but add section comments — zero file-count cost, but doesn't solve complexity or reviewability.
 

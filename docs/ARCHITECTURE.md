@@ -923,6 +923,31 @@ const enabled = useFeatureFlag('example_flag') // boolean
 
 Release channel is selectable in Settings as `alpha` or `stable` and passed to PostHog as a person property via `identify()`. Beta targeting is managed in PostHog, not in the updater settings. See ADR-0057.
 
+## Platform Support — Fedora Linux
+
+Fedora Linux is a co-primary desktop target alongside macOS. The Linux path uses GTK3 with WebKit2GTK 4.1 and assumes a Wayland-first Fedora desktop, while still allowing GTK/GDK to auto-detect X11 fallback when needed.
+
+**Runtime stack and launch path:**
+- Webview engine: WebKit2GTK 4.1
+- Windowing: GTK3
+- Session handling: rely on GDK auto-detection instead of forcing `GDK_BACKEND=wayland`
+- GPU workaround: disable the WebKit DMABUF renderer on Linux launch paths with `WEBKIT_DISABLE_DMABUF_RENDERER=1`
+
+**Linux-specific code conventions:**
+- Guard runtime changes with `#[cfg(all(desktop, target_os = "linux"))]`
+- Keep Linux-only decoration changes in Rust setup code so macOS retains its overlay title-bar behaviour
+- Apply `decorations: false` to the main webview on Linux so the custom frontend title bar occupies the full window width
+
+**Packaging targets:**
+- Build both RPM and AppImage bundles for Linux releases
+- Register `.md` file associations through Tauri bundle config so the generated `.desktop` entry advertises `MimeType=text/markdown;`
+- Keep RPM runtime dependencies aligned with the Linux bundle contract and the generated spec
+
+**Operational notes:**
+- `check-linux-env.sh` reports the active session type via `XDG_SESSION_TYPE` so developers can confirm whether they are on Wayland or X11
+- The Fedora setup guide documents the required system packages and the `pnpm tauri dev` launch flow
+- Linux changes must not alter macOS build behaviour; the `#[cfg(target_os = "linux")]` gate is the regression boundary
+
 ## Platform Support — iOS / iPadOS (Prototype)
 
 Tauri v2 supports iOS as a beta target. The Rust backend cross-compiles to `aarch64-apple-ios-sim` (simulator) and `aarch64-apple-ios` (device) with zero code changes to vault/frontmatter/search logic.

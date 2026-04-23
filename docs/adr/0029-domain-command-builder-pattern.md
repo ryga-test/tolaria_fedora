@@ -8,7 +8,7 @@ date: 2026-03-30
 
 ## Context
 
-`useCommandRegistry` was a 224-line "brain method" (CodeScene hotspot) that defined all command palette commands inline: navigation, note actions, git operations, view toggles, settings, type management, and filter controls. This monolithic structure scored 39 on CodeScene's complexity scale (target: ≤9.5 for hotspots), making it increasingly hard to add new commands without touching the central file.
+`useCommandRegistry` was a 224-line "brain method" that defined all command palette commands inline: navigation, note actions, git operations, view toggles, settings, type management, and filter controls. This monolithic structure made it increasingly hard to add new commands without touching the central file.
 
 ## Decision
 

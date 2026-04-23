@@ -18,7 +18,7 @@ The riskiest failures were exactly the native-owned commands that matter most in
 
 ## Options considered
 
-- **Option A** (chosen): Shared shortcut manifest plus shared dispatcher and deterministic menu-command QA. This reduces drift, improves CodeScene on the command router, and makes native-owned shortcuts provable without flaky macOS key synthesis. Downside: one more manifest to maintain.
+- **Option A** (chosen): Shared shortcut manifest plus shared dispatcher and deterministic menu-command QA. This reduces drift and makes native-owned shortcuts provable without flaky macOS key synthesis. Downside: one more manifest to maintain.
 - **Option B**: Keep the shared dispatcher from ADR 0050 but continue storing shortcut ownership in separate key maps and menu lists. Lower churn, but it keeps the exact source of the regressions we reopened.
 - **Option C**: Move all shortcuts into renderer-only handlers. Easier to test, but weaker macOS menu-bar parity and worse native desktop UX.
 
