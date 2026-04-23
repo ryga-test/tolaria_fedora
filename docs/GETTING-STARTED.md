@@ -8,6 +8,73 @@ How to navigate the codebase, run the app, and find what you need.
 - **Rust** 1.77.2+ (for the Tauri backend)
 - **git** CLI (required by the git integration features)
 
+## Fedora 43 Setup
+
+If you are setting up Tolaria on Fedora 43, install the Linux build dependencies first:
+
+```sh
+sudo dnf install -y \
+  webkit2gtk4.1-devel \
+  gtk3-devel \
+  openssl-devel \
+  libsoup3-devel \
+  glib2-devel \
+  at-spi2-atk-devel \
+  gdk-pixbuf2-devel \
+  pango-devel \
+  harfbuzz-devel \
+  cairo-devel \
+  curl \
+  wget \
+  file \
+  librsvg2-devel \
+  libxkbcommon-devel \
+  rpm-build \
+  patchelf \
+  squashfs-tools \
+  wmctrl \
+  gcc \
+  make
+```
+
+Install Rust with rustup, then enable Node.js and pnpm:
+
+```sh
+curl https://sh.rustup.rs -sSf | sh
+source "$HOME/.cargo/env"
+rustup default stable
+rustup update
+
+curl -fsSL https://fnm.vercel.app/install | bash
+# restart shell, then:
+fnm install --lts
+fnm use lts-latest
+
+corepack enable
+corepack prepare pnpm@latest --activate
+```
+
+Verify the environment before starting the app:
+
+```sh
+bash scripts/check-linux-env.sh
+```
+
+Launch the desktop app:
+
+```sh
+pnpm tauri dev
+```
+
+Known Fedora 43 issues and fixes:
+
+| Issue | Symptom | Fix |
+|-------|---------|-----|
+| Blank WebView on Wayland | App window appears but is empty | `WEBKIT_DISABLE_DMABUF_RENDERER=1` (auto-applied by the Linux launch path) |
+| `webkit2gtk4.1-devel` not found | `dnf install` error | Confirm you are on Fedora 43 and run `sudo dnf upgrade` |
+| KDE Plasma titlebar double-renders | Two title bars visible | Confirm the Linux `#[cfg]` decorations block is present |
+| AppImage won't run | Permission denied | `chmod +x Tolaria_*.AppImage` then re-run |
+
 ## Quick Start
 
 ```bash
