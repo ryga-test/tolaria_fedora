@@ -26,6 +26,9 @@ struct WsBridgeChild(Mutex<Option<Child>>);
 #[cfg(desktop)]
 struct ActiveAssetScopeRoot(Mutex<Option<std::path::PathBuf>>);
 
+#[cfg(all(desktop, target_os = "linux"))]
+const WEBKIT_DISABLE_DMABUF_RENDERER_ENV_VAR: &str = "WEBKIT_DISABLE_DMABUF_RENDERER";
+
 #[cfg(desktop)]
 fn log_startup_result(label: &str, result: Result<usize, String>) {
     match result {
@@ -140,6 +143,15 @@ fn setup_app(app: &mut tauri::App) -> Result<(), Box<dyn std::error::Error>> {
 
     #[cfg(desktop)]
     {
+        #[cfg(all(desktop, target_os = "linux"))]
+        {
+            use tauri::Manager;
+
+            if let Some(window) = app.get_webview_window("main") {
+                let _ = window.set_decorations(false);
+            }
+        }
+
         run_startup_tasks();
         spawn_ws_bridge(app);
     }
@@ -292,6 +304,14 @@ fn handle_run_event(app_handle: &tauri::AppHandle, event: &tauri::RunEvent) {
 
 #[cfg_attr(mobile, tauri::mobile_entry_point)]
 pub fn run() {
+    #[cfg(all(desktop, target_os = "linux"))]
+    {
+        // ADR 0077: keep Wayland WebKitGTK stable on Fedora Linux by disabling DMABUF rendering.
+        unsafe {
+            std::env::set_var(WEBKIT_DISABLE_DMABUF_RENDERER_ENV_VAR, "1");
+        }
+    }
+
     let builder = tauri::Builder::default();
 
     #[cfg(desktop)]
@@ -311,10 +331,20 @@ pub fn run() {
 
 #[cfg(test)]
 mod tests {
-    use super::MACOS_WEBVIEW_RESERVED_COMMAND_SHIFT_KEYS;
+    use super::{
+        MACOS_WEBVIEW_RESERVED_COMMAND_SHIFT_KEYS, WEBKIT_DISABLE_DMABUF_RENDERER_ENV_VAR,
+    };
 
     #[test]
     fn macos_webview_shortcut_prevention_includes_ai_panel_shortcut() {
         assert_eq!(MACOS_WEBVIEW_RESERVED_COMMAND_SHIFT_KEYS, ["L"]);
+    }
+
+    #[test]
+    fn linux_dmabuf_env_var_name_is_correct() {
+        assert_eq!(
+            WEBKIT_DISABLE_DMABUF_RENDERER_ENV_VAR,
+            "WEBKIT_DISABLE_DMABUF_RENDERER"
+        );
     }
 }
