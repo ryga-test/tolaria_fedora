@@ -38,6 +38,11 @@ version_ge() {
   return 0
 }
 
+parse_rust_version() {
+  local output="$1"
+  printf '%s\n' "$output" | awk '{print $2}'
+}
+
 packages=(
   webkit2gtk4.1-devel
   gtk3-devel
@@ -68,7 +73,7 @@ done
 
 if command -v rustc >/dev/null 2>&1; then
   rustc_version_output="$(rustc --version)"
-  rustc_version="$(printf '%s\n' "$rustc_version_output" | awk '{print $2}')"
+  rustc_version="$(parse_rust_version "$rustc_version_output")"
 
   if version_ge "$rustc_version" "1.77.2"; then
     printf '[OK] rust %s\n' "$rustc_version"
