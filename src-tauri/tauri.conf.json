@@ -63,6 +63,7 @@
         "release": "1",
         "epoch": 0,
         "depends": ["webkit2gtk4.1", "gtk3", "openssl", "libsoup3"],
+        "desktopTemplate": "desktop-template.desktop",
         "recommends": [],
         "provides": [],
         "conflicts": []
