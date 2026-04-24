@@ -53,7 +53,7 @@ test.describe('Wikilink insertion and navigation', () => {
     expect(target).toBeTruthy()
   })
 
-  test('@smoke Cmd+clicking an inserted wikilink navigates to the note', async ({ page }) => {
+  test('@smoke @push-smoke Cmd+clicking an inserted wikilink navigates to the note', async ({ page }) => {
     const wikilink = await insertWikilink(page)
     await expect(wikilink).toBeVisible()
 

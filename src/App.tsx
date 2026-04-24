@@ -107,6 +107,7 @@ import {
   isExplicitOrganizationEnabled,
   sanitizeSelectionForOrganization,
 } from './utils/organizationWorkflow'
+import { getAppStorageItem } from './constants/appStorage'
 import './App.css'
 
 // Type declarations for mock content storage and test overrides
@@ -128,6 +129,10 @@ function shouldPreferOnboardingVaultPath(
     && typeof onboardingState.vaultPath === 'string'
     && onboardingState.vaultPath.length > 0
     && !vaults.some((vault) => vault.path === onboardingState.vaultPath)
+}
+
+function wasWelcomeDismissedBeforeStartup(): boolean {
+  return getAppStorageItem('welcomeDismissed') === '1'
 }
 
 async function resolveNoteWindowEntry(
@@ -197,6 +202,7 @@ function createPulseDeletedNoteEntry(fullPath: string, relativePath: string): De
 /** Wraps useEditorSave to also keep outgoingLinks in sync on save and on content change. */
 function App() {
   const noteWindowParams = useMemo(() => isNoteWindow() ? getNoteWindowParams() : null, [])
+  const initialWelcomeDismissedRef = useRef(wasWelcomeDismissedBeforeStartup())
   const [selection, setSelection] = useState<SidebarSelection>(DEFAULT_SELECTION)
   const [noteListFilter, setNoteListFilter] = useState<NoteListFilter>('open')
   const selectionRef = useRef<SidebarSelection>(DEFAULT_SELECTION)
@@ -1306,6 +1312,7 @@ function App() {
 
   const shouldResumeFreshStartOnboarding = useMemo(() => {
     if (onboarding.state.status !== 'ready' || !vaultSwitcher.loaded) return false
+    if (!initialWelcomeDismissedRef.current) return false
 
     return vaultSwitcher.allVaults.length === 1
       && vaultSwitcher.allVaults[0]?.path === vaultSwitcher.vaultPath

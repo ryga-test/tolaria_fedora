@@ -1,6 +1,6 @@
 import { test, expect } from '@playwright/test'
 
-test('Getting Started template shows inline retry on clone failure and opens after retry @smoke', async ({ page }) => {
+test('Getting Started template shows inline retry on clone failure and opens after retry @smoke @push-smoke', async ({ page }) => {
   const clonedPath = '/Users/mock/Documents/Getting Started'
 
   await page.addInitScript(() => {

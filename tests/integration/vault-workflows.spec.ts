@@ -47,7 +47,7 @@ async function renameActiveNoteFilename(page: import('@playwright/test').Page, n
 // 1. Vault loads entries from real fixture files
 // ---------------------------------------------------------------------------
 
-test('vault loads entries from fixture files @smoke', async ({ page }) => {
+test('vault loads entries from fixture files @smoke @push-smoke', async ({ page }) => {
   const list = noteList(page)
   await expect(list.getByText('Alpha Project', { exact: true })).toBeVisible()
   await expect(list.getByText('Note B', { exact: true })).toBeVisible()
@@ -89,7 +89,7 @@ test('trashed note does not appear in All Notes', async ({ page }) => {
 // 4. Create note saves file to disk with correct slug
 // ---------------------------------------------------------------------------
 
-test('create note saves file to disk with correct slug', async ({ page }) => {
+test('create note saves file to disk with correct slug @push-smoke', async ({ page }) => {
   const beforeFiles = new Set(fs.readdirSync(tempVaultDir))
 
   // "Create new note" instantly creates "Untitled note" and opens in editor
@@ -176,7 +176,7 @@ test('inspector shows relationships for note with wikilink fields', async ({ pag
 // 8. Opening a note loads real file content from disk
 // ---------------------------------------------------------------------------
 
-test('editor shows real file content from disk', async ({ page }) => {
+test('editor shows real file content from disk @push-smoke', async ({ page }) => {
   // Open Team Meeting
   await openNote(page, 'Team Meeting')
 

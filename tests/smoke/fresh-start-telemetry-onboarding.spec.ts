@@ -46,7 +46,7 @@ async function mockFreshStart(
   }, options)
 }
 
-test('accepting telemetry consent on a fresh start opens the vault choice wizard @smoke', async ({ page }) => {
+test('accepting telemetry consent on a fresh start opens the vault choice wizard @smoke @push-smoke', async ({ page }) => {
   await mockFreshStart(page, {
     activeVault: null,
     checkExistingPath: '/Users/mock/Documents/Getting Started',

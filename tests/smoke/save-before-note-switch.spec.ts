@@ -61,7 +61,7 @@ test.afterEach(() => {
   removeFixtureVaultCopy(tempVaultDir)
 })
 
-test('@smoke switching notes persists unsaved raw edits without waiting for the debounce window', async ({ page }) => {
+test('@smoke @push-smoke switching notes persists unsaved raw edits without waiting for the debounce window', async ({ page }) => {
   const noteBPath = path.join(tempVaultDir, 'note', 'note-b.md')
   const appendedText = `Flushed before note switch ${Date.now()}`
 

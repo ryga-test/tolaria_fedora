@@ -13,7 +13,7 @@ test.describe('Command Palette smoke tests', () => {
     await expect(page.locator('[data-testid="sidebar-top-nav"]')).toBeVisible({ timeout: 10_000 })
   })
 
-  test('Cmd+K opens the command palette @smoke', async ({ page }) => {
+  test('Cmd+K opens the command palette @smoke @push-smoke', async ({ page }) => {
     await openCommandPalette(page)
     await verifyVisible(page, 'input[placeholder="Type a command..."]')
   })
@@ -53,7 +53,7 @@ test.describe('Keyboard shortcuts smoke tests', () => {
     await expect(page.locator('[data-testid="sidebar-top-nav"]')).toBeVisible({ timeout: 10_000 })
   })
 
-  test('Cmd+P opens quick open palette @smoke', async ({ page }) => {
+  test('Cmd+P opens quick open palette @smoke @push-smoke', async ({ page }) => {
     await page.locator('body').click()
     await sendShortcut(page, 'p', ['Control'])
     await expect(

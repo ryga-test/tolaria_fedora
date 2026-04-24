@@ -12,8 +12,9 @@
 # 2. Change detection: skips Rust checks entirely when no files under
 #    src-tauri/ changed. Saves ~1-2 min on frontend-only pushes.
 #
-# 3. Merged redundant test runs: frontend coverage (step 2) already runs
-#    all tests, so the separate test step was removed.
+# 3. Fast local frontend tests: pre-push runs unit tests without coverage.
+#    Full coverage remains available via pnpm test:coverage and should run
+#    in CI or before release branches.
 #
 # 4. Fast-fail ordering: within Rust checks, fast lints (fmt ~2s, clippy
 #    ~15s) run before slow coverage (~30-60s) for quicker feedback.
@@ -21,10 +22,14 @@
 # 5. Force full coverage: set LAPUTA_FULL_COVERAGE=1 to run cargo llvm-cov
 #    without --no-clean (clean rebuild, accurate baseline).
 #
+# 6. Push smoke lane: pre-push runs only tests tagged @push-smoke. Broader
+#    Playwright smoke/regression suites remain available via pnpm
+#    playwright:smoke and pnpm playwright:regression.
+#
 # Expected times (warm cache, incremental):
-#   Frontend only:  ~1 min
-#   Frontend+Rust:  ~2-3 min
-#   Full coverage:  ~9-10 min (with LAPUTA_FULL_COVERAGE=1)
+#   Frontend only:  ~2-4 min
+#   Frontend+Rust:  ~3-5 min
+#   Full local coverage/regression: run explicitly, not on every push
 # ─────────────────────────────────────────────────────────────────────────
 set -e
 
@@ -112,11 +117,11 @@ pnpm exec tsc --noEmit
 pnpm build
 echo "  ✅ Build OK"
 
-# ── 1. Frontend coverage (≥70%) — includes all unit tests ───────────────
+# ── 1. Frontend unit tests — no coverage in pre-push ────────────────────
 echo ""
-echo "📊 [1/5] Frontend tests + coverage (≥70%)..."
-pnpm test:coverage
-echo "  ✅ Frontend coverage OK"
+echo "🧪 [1/5] Frontend unit tests..."
+pnpm test
+echo "  ✅ Frontend unit tests OK"
 
 # ── 2. Rust lint (clippy + fmt) — fast, run before coverage ─────────────
 echo ""
@@ -153,18 +158,18 @@ else
   echo "⏭️  [3/4] Rust coverage — skipped (no src-tauri/ changes)"
 fi
 
-# ── 4. Playwright core smoke lane (if any exist) ──────────────────────
+# ── 4. Playwright push smoke lane (if any exist) ──────────────────────
 echo ""
-SMOKE_FILES=$(find tests/smoke tests/integration -name '*.spec.ts' 2>/dev/null | head -1)
+SMOKE_FILES=$(grep -R "@push-smoke" tests/smoke tests/integration 2>/dev/null | head -1)
 if [ -n "$SMOKE_FILES" ]; then
-  echo "🎭 [4/4] Playwright core smoke tests..."
-  if ! pnpm playwright:smoke; then
-    echo "  ❌ Core smoke tests FAILED"
+  echo "🎭 [4/4] Playwright push smoke tests..."
+  if ! pnpm playwright:push-smoke; then
+    echo "  ❌ Push smoke tests FAILED"
     exit 1
   fi
-  echo "  ✅ Core smoke tests OK"
+  echo "  ✅ Push smoke tests OK"
 else
-  echo "⏭️  [4/4] Playwright core smoke tests — skipped (no tests/**/*.spec.ts)"
+  echo "⏭️  [4/4] Playwright push smoke tests — skipped (no @push-smoke tests)"
 fi
 
 END_TIME=$(date +%s)

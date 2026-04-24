@@ -106,7 +106,7 @@ test.describe('Create note crash fix', () => {
     })
   })
 
-  test('Cmd+N creates a note without crashing @smoke', async ({ page }) => {
+  test('Cmd+N creates a note without crashing @smoke @push-smoke', async ({ page }) => {
     await openTestVault(page)
     await expectUntitledNoteWithoutCrash(page, 'note', async () => {
       await page.waitForTimeout(300)
