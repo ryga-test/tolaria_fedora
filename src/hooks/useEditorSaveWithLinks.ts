@@ -1,4 +1,4 @@
-import { startTransition, useCallback, useRef } from 'react'
+import { useCallback, useRef } from 'react'
 import { useEditorSave } from './useEditorSave'
 import { extractOutgoingLinks, extractSnippet, countWords } from '../utils/wikilinks'
 import { deriveRawEditorEntryState } from './rawEditorEntryState'
@@ -74,9 +74,7 @@ export function useEditorSaveWithLinks(config: {
     const titleKey = JSON.stringify(titlePatch)
     if (titleKey !== prevTitleKeyRef.current) {
       prevTitleKeyRef.current = titleKey
-      startTransition(() => {
-        updateEntry(path, titlePatch)
-      })
+      updateEntry(path, titlePatch)
     }
   }, [rawOnChange, updateEntry])
   return { ...editor, handleContentChange }

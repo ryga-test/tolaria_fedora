@@ -1,6 +1,6 @@
 import { test, expect, type Page } from '@playwright/test'
 
-const REMEMBERED_DEFAULT_VAULT_PATH = '/Volumes/Jupiter/Workspace/laputa-app/demo-vault-v2'
+const REMEMBERED_DEFAULT_VAULT_PATH = '/Users/mock/Documents/Getting Started'
 
 async function mockFreshStart(
   page: Page,
@@ -32,7 +32,7 @@ async function mockFreshStart(
           anonymous_id: null,
         })
         ref.load_vault_list = () => ({
-          vaults: [],
+          vaults: config.activeVault ? [{ label: 'Default Vault', path: config.activeVault }] : [],
           active_vault: config.activeVault,
           hidden_defaults: [],
         })

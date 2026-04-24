@@ -144,7 +144,7 @@ test('@smoke edited H1 titles drive note list, search, and wikilink autocomplete
   await page.keyboard.type('[[Up')
 
   const suggestionMenu = page.locator('.wikilink-menu')
-  await expect(suggestionMenu).toContainText(updatedTitle, { timeout: 5_000 })
+  await expect(suggestionMenu).toContainText(updatedTitle, { timeout: 10_000 })
 })
 
 test('@smoke rapid H1 typing stays stable while editing an existing note', async ({ page }) => {

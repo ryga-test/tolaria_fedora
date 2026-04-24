@@ -98,7 +98,9 @@ fn setup_desktop_plugins(app: &mut tauri::App) -> Result<(), Box<dyn std::error:
     Ok(())
 }
 
+#[cfg_attr(not(target_os = "macos"), allow(dead_code))]
 const MACOS_WEBVIEW_RESERVED_COMMAND_KEYS: &[&str] = &["O"];
+#[cfg_attr(not(target_os = "macos"), allow(dead_code))]
 const MACOS_WEBVIEW_RESERVED_COMMAND_SHIFT_KEYS: &[&str] = &["L"];
 
 #[cfg(all(desktop, target_os = "macos"))]

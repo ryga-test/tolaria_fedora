@@ -16,6 +16,7 @@ import type {
 } from '../types'
 import { MOCK_CONTENT } from './mock-content'
 import { MOCK_ENTRIES } from './mock-entries'
+import { extractH1TitleFromContent } from '../utils/noteTitle'
 
 function syncWindowContent(): void {
   if (typeof window !== 'undefined') {
@@ -480,7 +481,21 @@ export const mockHandlers: Record<string, (args: any) => any> = {
     }
     return 'Vault repaired'
   },
-  reinit_telemetry: (): null => null,
+   reinit_telemetry: (): null => null,
+   auto_rename_untitled: (args: { vaultPath: string; notePath: string }) => {
+     const content = MOCK_CONTENT[args.notePath] ?? ''
+     const h1Title = extractH1TitleFromContent(content)
+     if (!h1Title) return null
+     const newStem = h1Title.toLowerCase().replace(/[^a-z0-9]+/g, '-').replace(/(^-|-$)/g, '')
+     const newPath = args.notePath.replace(/[^/]+\.md$/, `${newStem}.md`)
+     if (newPath === args.notePath) return null
+     MOCK_CONTENT[newPath] = content
+     delete MOCK_CONTENT[args.notePath]
+     mockVaultList.vaults = mockVaultList.vaults.map(v =>
+       v.path === args.notePath ? { ...v, path: newPath } : v
+     )
+     return { new_path: newPath, updated_files: 0 }
+   },
 }
 
 export function addMockEntry(_entry: VaultEntry, content: string): void {
