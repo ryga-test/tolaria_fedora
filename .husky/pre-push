@@ -113,7 +113,7 @@ echo "  ✅ Build OK"
 # ── 1. Frontend coverage (≥70%) — includes all unit tests ───────────────
 echo ""
 echo "📊 [1/5] Frontend tests + coverage (≥70%)..."
-pnpm test:coverage --silent
+pnpm test:coverage
 echo "  ✅ Frontend coverage OK"
 
 # ── 2. Rust lint (clippy + fmt) — fast, run before coverage ─────────────
