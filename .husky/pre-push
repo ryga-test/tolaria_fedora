@@ -81,7 +81,9 @@ EOF
 if [ -t 0 ]; then
   PUSH_INPUT=""
 else
-  PUSH_INPUT=$(cat)
+  # Some sandboxed runners keep hook stdin open; cap the wait so the hook
+  # can continue with branch validation instead of hanging forever.
+  PUSH_INPUT=$(timeout 1s cat || true)
 fi
 require_main_push
 ensure_node_tooling
