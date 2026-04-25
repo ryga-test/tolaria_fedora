@@ -980,3 +980,22 @@ Features that work on both platforms without changes:
 **Capabilities:** `src-tauri/capabilities/default.json` targets desktop; `mobile.json` targets iOS/Android with a minimal permission set.
 
 **Detailed feasibility report:** `docs/IPAD-PROTOTYPE.md`
+
+## Window Controls (Linux)
+
+On Linux (`set_decorations(false)` removes the native title bar), Tolaria renders its own window controls in the `SidebarTitleBar`.
+
+**Component**: `src/components/WindowControlButtons.tsx` — renders three shadcn/ui `Button` (ghost, 24×24px) with Phosphor icons: Minus (minimize), ArrowsOut/ArrowsIn (maximize/restore toggle), X (close). Platform-guards via `window.__TAURI_INTERNALS__?.platform === 'linux'`; returns `null` on non-Linux so macOS native controls are unaffected.
+
+**Hook**: `src/hooks/useWindowControls.ts` — wraps `@tauri-apps/api/window` `getCurrentWindow()`. Subscribes to `onResized` to keep `isMaximized` reactive. All actions are no-ops in browser (non-Tauri) mode. Exposes `{ isMaximized, minimize, toggleMaximize, close }`.
+
+**Keyboard shortcuts** (KDE-standard, handled as a direct Alt+F* branch in `handleAppKeyboardEvent` before the catalog lookup — see ADR 0078):
+- Alt+F9 → minimize
+- Alt+F10 → maximize/restore
+- Alt+F4 → close
+
+**Double-click title bar**: `SidebarTitleBar` (`src/components/sidebar/SidebarSections.tsx`) registers an `onDoubleClick` handler on Linux that calls `toggleMaximize()`, matching KDE/KWin convention.
+
+**Padding**: `SidebarTitleBar` uses `paddingLeft: 80` on macOS (reserves traffic-light space) and `paddingLeft: 8` on Linux.
+
+**ADR**: `docs/adr/0078-custom-window-controls-linux.md`

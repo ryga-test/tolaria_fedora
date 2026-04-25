@@ -38,6 +38,7 @@ import { useGitRemoteStatus } from './hooks/useGitRemoteStatus'
 import { useViewMode, type ViewMode } from './hooks/useViewMode'
 import { useEntryActions } from './hooks/useEntryActions'
 import { useAppCommands } from './hooks/useAppCommands'
+import { useWindowControls } from './hooks/useWindowControls'
 import { triggerCommitEntryAction } from './utils/commitEntryAction'
 import { generateCommitMessage } from './utils/commitMessage'
 import { useDialogs } from './hooks/useDialogs'
@@ -1219,6 +1220,8 @@ function App() {
     [activeDeletedFile, handleDiscardFile],
   )
 
+  const windowControls = useWindowControls()
+
   const commands = useAppCommands({
     activeTabPath: notes.activeTabPath, activeTabPathRef: notes.activeTabPathRef,
     entries: vault.entries,
@@ -1290,6 +1293,9 @@ function App() {
     noteListColumnsLabel,
     onRestoreDeletedNote: restoreDeletedNoteCommand,
     canRestoreDeletedNote: !!activeDeletedFile,
+    onWindowMinimize: windowControls.minimize,
+    onWindowMaximizeRestore: windowControls.toggleMaximize,
+    onWindowClose: windowControls.close,
   })
 
   const activeTab = notes.tabs.find((t) => t.entry.path === notes.activeTabPath) ?? null

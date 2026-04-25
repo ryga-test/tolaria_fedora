@@ -19,6 +19,8 @@ import {
 } from '../SidebarParts'
 import { TypeCustomizePopover } from '../TypeCustomizePopover'
 import { useDragRegion } from '../../hooks/useDragRegion'
+import { useWindowControls } from '../../hooks/useWindowControls'
+import { WindowControlButtons } from '../WindowControlButtons'
 import { NoteDropTarget } from '../note-retargeting/NoteDropTarget'
 import { useNoteRetargetingContext } from '../note-retargeting/noteRetargetingContext'
 import { SidebarGroupHeader } from './SidebarGroupHeader'
@@ -223,14 +225,25 @@ export function TypesSection({
   )
 }
 
+function isLinuxPlatform(): boolean {
+  return (window as unknown as { __TAURI_INTERNALS__?: { platform?: string } })
+    .__TAURI_INTERNALS__?.platform === 'linux'
+}
+
 export function SidebarTitleBar({ onCollapse }: { onCollapse?: () => void }) {
   const { onMouseDown } = useDragRegion()
+  const { toggleMaximize } = useWindowControls()
+
+  const handleDoubleClick = isLinuxPlatform() ? toggleMaximize : undefined
+
+  const paddingLeft = isLinuxPlatform() ? 8 : 80
 
   return (
     <div
       className="shrink-0 flex items-center justify-end border-b border-border"
-      style={{ height: 52, padding: '0 8px', paddingLeft: 80, cursor: 'default' }}
+      style={{ height: 52, padding: '0 8px', paddingLeft, cursor: 'default' }}
       onMouseDown={onMouseDown}
+      onDoubleClick={handleDoubleClick}
     >
       {onCollapse && (
         <button
@@ -243,6 +256,7 @@ export function SidebarTitleBar({ onCollapse }: { onCollapse?: () => void }) {
           <CaretLeft size={14} weight="bold" />
         </button>
       )}
+      <WindowControlButtons />
     </div>
   )
 }

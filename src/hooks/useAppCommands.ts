@@ -94,6 +94,9 @@ interface AppCommandsConfig {
   noteListColumnsLabel?: string
   onRestoreDeletedNote?: () => void
   canRestoreDeletedNote?: boolean
+  onWindowMinimize?: () => void
+  onWindowMaximizeRestore?: () => void
+  onWindowClose?: () => void
 }
 
 type CommandRegistryConfig = Parameters<typeof useCommandRegistry>[0]
@@ -208,6 +211,9 @@ function createKeyboardActions(
     onToggleFavorite: config.onToggleFavorite,
     onToggleOrganized: config.onToggleOrganized,
     onOpenInNewWindow: config.onOpenInNewWindow,
+    onWindowMinimize: config.onWindowMinimize,
+    onWindowMaximizeRestore: config.onWindowMaximizeRestore,
+    onWindowClose: config.onWindowClose,
     activeTabPathRef: config.activeTabPathRef,
     multiSelectionCommandRef: config.multiSelectionCommandRef,
   }

@@ -30,6 +30,9 @@ export type KeyboardActions = Pick<
   | 'onToggleFavorite'
   | 'onToggleOrganized'
   | 'onOpenInNewWindow'
+  | 'onWindowMinimize'
+  | 'onWindowMaximizeRestore'
+  | 'onWindowClose'
   | 'activeTabPathRef'
   | 'multiSelectionCommandRef'
 >
@@ -48,6 +51,13 @@ function isTextInputFocused(): boolean {
 }
 
 export function handleAppKeyboardEvent(actions: KeyboardActions, event: KeyboardEvent) {
+  // KDE Linux window management shortcuts use Alt+F* which the combo system does not cover.
+  if (event.altKey && !event.ctrlKey && !event.metaKey && !event.shiftKey) {
+    if (event.key === 'F9')  { event.preventDefault(); actions.onWindowMinimize?.(); return }
+    if (event.key === 'F10') { event.preventDefault(); actions.onWindowMaximizeRestore?.(); return }
+    if (event.key === 'F4')  { event.preventDefault(); actions.onWindowClose?.(); return }
+  }
+
   const commandId = findShortcutCommandIdForEvent(event)
   if (commandId === null) return
 

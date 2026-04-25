@@ -457,3 +457,23 @@ BASE_URL="http://localhost:5173" npx playwright test tests/smoke/<slug>.spec.ts
 3. **Tool action display**: Edit `src/components/AiActionCard.tsx`
 4. **Claude CLI arguments**: Edit `src-tauri/src/claude_cli.rs` (`run_agent_stream()`)
 5. **Shared agent adapters / Codex args**: Edit `src-tauri/src/ai_agents.rs` (keep Codex on the normal approval/sandbox path unless you are intentionally designing an advanced mode)
+
+## Window Controls (Linux)
+
+The app uses `set_decorations(false)` — there is no native OS title bar. On Linux, three custom window control buttons appear in the top of the sidebar:
+
+- **Minimize** (dash icon) — sends the window to the KDE taskbar
+- **Maximize / Restore** (expand/contract icon) — fills the current monitor; click again to restore previous dimensions
+- **Close** (X icon, red on hover) — exits the application
+
+### Keyboard shortcuts
+
+| Action | Shortcut |
+|---|---|
+| Minimize | Alt+F9 |
+| Maximize / Restore | Alt+F10 |
+| Close | Alt+F4 |
+
+Double-clicking the sidebar title bar also toggles maximize/restore (KDE convention).
+
+These buttons only appear on Linux — on macOS the native traffic-light controls are used.

@@ -683,3 +683,16 @@ Managed by `useSettings` hook and `SettingsPanel` component. `default_ai_agent` 
 - **`.github/workflows/release.yml`** — Alpha prereleases from every push to `main` using calendar-semver technical versions (`YYYY.M.D-alpha.N`) and clean `Alpha YYYY.M.D.N` release names. GitHub alpha tags zero-pad the prerelease sequence (`alpha-vYYYY.M.D-alpha.NNNN`) so GitHub release ordering stays chronological while the shipped app version remains `YYYY.M.D-alpha.N`. Publishes `alpha/latest.json` and refreshes the legacy `latest.json` / `latest-canary.json` aliases to the alpha feed.
 - **`.github/workflows/release-stable.yml`** — Stable releases from `stable-vYYYY.M.D` tags. Publishes `stable/latest.json`.
 - **Beta cohorts** are handled in PostHog targeting only. There is no beta updater feed.
+
+### `useWindowControls`
+
+**Purpose**: Wraps the Tauri `@tauri-apps/api/window` API for minimize, maximize/restore, and close actions with reactive maximized-state tracking.
+
+**Interface**:
+```typescript
+{ isMaximized: boolean, minimize: () => void, toggleMaximize: () => void, close: () => void }
+```
+
+**Platform-safety contract**: All actions are no-ops when `window.__TAURI_INTERNALS__` is absent (browser/test mode). `isMaximized` stays `false` in browser mode. Subscribes to `onResized` events to keep `isMaximized` in sync with KWin window state.
+
+**Location**: `src/hooks/useWindowControls.ts`

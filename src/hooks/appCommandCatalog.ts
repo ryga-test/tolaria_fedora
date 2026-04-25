@@ -44,6 +44,9 @@ export const APP_COMMAND_IDS = {
   vaultInstallMcp: 'vault-install-mcp',
   vaultReload: 'vault-reload',
   vaultRepair: 'vault-repair',
+  windowMinimize: 'window-minimize',
+  windowMaximizeRestore: 'window-maximize-restore',
+  windowClose: 'window-close',
 } as const
 
 export type AppCommandId = (typeof APP_COMMAND_IDS)[keyof typeof APP_COMMAND_IDS]
@@ -103,6 +106,9 @@ type SimpleHandlerKey =
   | 'onRepairVault'
   | 'onOpenInNewWindow'
   | 'onRestoreDeletedNote'
+  | 'onWindowMinimize'
+  | 'onWindowMaximizeRestore'
+  | 'onWindowClose'
 
 type ActiveTabHandlerKey =
   | 'onToggleOrganized'
@@ -327,6 +333,18 @@ export const APP_COMMAND_DEFINITIONS: Record<AppCommandId, AppCommandDefinition>
   [APP_COMMAND_IDS.vaultRepair]: {
     route: { kind: 'handler', handler: 'onRepairVault' },
     menuOwned: true,
+  },
+  [APP_COMMAND_IDS.windowMinimize]: {
+    route: { kind: 'handler', handler: 'onWindowMinimize' },
+    menuOwned: false,
+  },
+  [APP_COMMAND_IDS.windowMaximizeRestore]: {
+    route: { kind: 'handler', handler: 'onWindowMaximizeRestore' },
+    menuOwned: false,
+  },
+  [APP_COMMAND_IDS.windowClose]: {
+    route: { kind: 'handler', handler: 'onWindowClose' },
+    menuOwned: false,
   },
 }
 
